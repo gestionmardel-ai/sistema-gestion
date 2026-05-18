@@ -168,6 +168,7 @@ const hoy = () => new Date().toISOString().slice(0,10);
 const precioSugerido = (precio,rent) => { const p=parseFloat(precio)||0,r=parseFloat(rent)||0; return p+p*r/100; };
 
 const TIPOS = ["Factura A","Factura B","Factura C","Factura M","Ticket A","Ticket B","NO OFICIAL"];
+const UNIDADES_COMPRA = ["Unidad","Kg","g","Litro","ml","Metro","Caja","Cajón","Bidón","Bolsa","Resma","Par","Docena"];
 const MENU = [
   {id:"dash",icon:"🏠",label:"INICIO",roles:["admin","operador"]},
   {id:"art",icon:"📦",label:"ARTÍCULOS",roles:["admin","operador"]},
@@ -512,7 +513,7 @@ function Articulos({articulos,setArticulos,usuario}){
             <th style={{minWidth:200}}>NOMBRE</th>
             <th style={{whiteSpace:"nowrap"}}>UNIDAD</th>
             <th style={{whiteSpace:"nowrap"}}>STOCK</th>
-            <th style={{whiteSpace:"nowrap"}}>COSTO $</th>
+            <th style={{whiteSpace:"nowrap"}}>ÚLT. COSTO $</th>
             <th style={{whiteSpace:"nowrap"}}>RENT.%</th>
             <th style={{whiteSpace:"nowrap"}}>P.SUGERIDO $</th>
             <th style={{whiteSpace:"nowrap"}}>ESTADO</th>
@@ -531,7 +532,10 @@ function Articulos({articulos,setArticulos,usuario}){
                 </td>
                 <td style={{whiteSpace:"nowrap"}}>{a.unidad}</td>
                 <td style={{fontWeight:700,color:a.stock<=5?"#DC2626":"#16A34A",whiteSpace:"nowrap"}}>{a.stock}</td>
-                <td style={{whiteSpace:"nowrap"}}>$ {fmtP(a.precio)}</td>
+                <td style={{whiteSpace:"nowrap"}}>
+                  <div>$ {fmtP(a.precio)}</div>
+                  {a.ultimaFechaCompra&&<div style={{fontSize:10,color:"#94A3B8"}}>{a.ultimaFechaCompra}</div>}
+                </td>
                 <td style={{fontWeight:700,color:"#7C3AED",whiteSpace:"nowrap"}}>{a.rentabilidad||0}%</td>
                 <td style={{fontWeight:700,color:"#0891B2",whiteSpace:"nowrap"}}>$ {fmtP(pSug(a))}</td>
                 <td><span className="badge" style={{background:a.activo?"#1A8F4A":"#C0392B",color:"#fff"}}>{a.activo?"ACTIVO":"INACT."}</span></td>
@@ -545,6 +549,14 @@ function Articulos({articulos,setArticulos,usuario}){
       {modal&&(
         <Modal title={modal==="n"?"NUEVO ARTÍCULO":"EDITAR ARTÍCULO"} onClose={()=>setModal(null)}>
           {err&&<div className="err">{err}</div>}
+          {modal==="e"&&(form.ultimaFechaCompra||form.precio>0)&&(
+            <div style={{background:"#EBF5FB",borderRadius:6,padding:"10px 14px",fontSize:12,marginBottom:14,borderLeft:"3px solid #0891B2"}}>
+              <strong style={{color:"#1A5276"}}>🛒 Último precio de compra:</strong>{" "}
+              <span style={{fontWeight:700,color:"#0891B2"}}>$ {fmtP(form.precio)}</span>
+              {form.ultimaFechaCompra&&<span style={{color:"#7F8C8D"}}> · {form.ultimaFechaCompra}</span>}
+              {form.ultimoProveedorCompra&&<span style={{color:"#7F8C8D"}}> · {form.ultimoProveedorCompra}</span>}
+            </div>
+          )}
           <div className="grid2">
             <div className="fg"><label>COD. INTERNO (AUTO)</label><input value={form.id?"#"+form.id:"(automático)"} disabled style={{fontWeight:700,color:"#1A6FA8"}}/></div>
             <div className="fg"><label>CÓDIGO PROPIO / BARCODE</label><input value={form.codigoPropio||""} onChange={e=>setForm(p=>({...p,codigoPropio:e.target.value}))} placeholder="Opcional"/></div>
@@ -991,6 +1003,43 @@ function BuscadorArticulo({linea,articulos,setArticulos,onChange,onDelete,mostra
 }
 function LineaConRef(props){const cantRef=useRef(null);return <BuscadorArticulo {...props} cantidadRef={cantRef}/>;}
 
+// ── LÍNEA DE COMPRA (detalle/marca, unidad, monto total, precio fracción) ─────
+function LineaCompraRow({linea,articulos,onChange,onDelete}){
+  const [modalAbierto,setModalAbierto]=useState(false);
+  const cantidad=parseFloat(linea.cantidad)||0;
+  const montoTotal=parseFloat(linea.montoTotal)||0;
+  const precioFraccion=cantidad>0&&montoTotal>0?montoTotal/cantidad:0;
+  const selArticulo=(a)=>{
+    onChange({...linea,articuloId:a.id,articuloNombre:a.nombre,articuloCodigo:a.codigo,
+      unidadMedida:linea.unidadMedida||a.unidad||"Unidad",cantidad:linea.cantidad||1});
+  };
+  return(
+    <>
+      {modalAbierto&&<ModalBuscarArticulo articulos={articulos} onSelect={(a)=>{selArticulo(a);setModalAbierto(false);}} onClose={()=>setModalAbierto(false)} mostrarSugerido={false}/>}
+      <tr>
+        <td style={{minWidth:190}}>
+          <div onClick={()=>setModalAbierto(true)} style={{padding:"8px 10px",border:"1.5px solid",borderColor:linea.articuloId?"#1A8F4A":"#AED6F1",borderRadius:6,cursor:"pointer",background:linea.articuloId?"#EAFAF1":"#fff",display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:13}}>
+            <span style={{fontWeight:linea.articuloId?600:400,color:linea.articuloId?"#1A5276":"#7F8C8D"}}>{linea.articuloNombre||"Buscar artículo..."}</span>
+            <span style={{fontSize:15,opacity:0.6}}>🔍</span>
+          </div>
+        </td>
+        <td><input value={linea.detalle||""} onChange={e=>onChange({...linea,detalle:e.target.value})} placeholder="Marca/detalle" style={{width:120,fontSize:13}}/></td>
+        <td><input value={linea.cantidad||""} type="number" min={1} onChange={e=>onChange({...linea,cantidad:e.target.value})} style={{width:65,fontSize:13,textAlign:"center"}}/></td>
+        <td>
+          <select value={linea.unidadMedida||"Unidad"} onChange={e=>onChange({...linea,unidadMedida:e.target.value})} style={{width:85,fontSize:13}}>
+            {UNIDADES_COMPRA.map(u=><option key={u}>{u}</option>)}
+          </select>
+        </td>
+        <td><input value={linea.montoTotal||""} type="number" step="0.01" min={0} onChange={e=>onChange({...linea,montoTotal:e.target.value})} placeholder="Total pagado" style={{width:115,fontSize:13,textAlign:"right"}}/></td>
+        <td style={{textAlign:"right",fontWeight:700,color:"#0891B2",whiteSpace:"nowrap",minWidth:110}}>
+          {precioFraccion>0?"$ "+fmtP(precioFraccion):<span style={{color:"#BDC3C7"}}>—</span>}
+        </td>
+        <td><button className="btn btn-danger" onClick={onDelete} style={{padding:"4px 10px",fontSize:12}}>✕</button></td>
+      </tr>
+    </>
+  );
+}
+
 async function exportarExcel(filas, nombreArchivo){
   const XLSX = await new Promise((res,rej)=>{
     if(window.XLSX){res(window.XLSX);return;}
@@ -1009,51 +1058,68 @@ async function exportarExcel(filas, nombreArchivo){
 
 function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usuario,onVolver}){
   const [enc,setEnc]=useState({fecha:hoy(),proveedorId:"",tipoBoleta:"Factura B",nroComprobante:""});
-  const [lineas,setLineas]=useState([{_k:1,articuloId:null,articuloNombre:"",articuloCodigo:"",cantidad:"",precioUnitario:""}]);
-  const [imp,setImp]=useState("");
-  const [err,setErr]=useState("");
-  const [guardando,setGuardando]=useState(false);
-  const [ok,setOk]=useState(false);
+  const [lineas,setLineas]=useState([{_k:1,articuloId:null,articuloNombre:"",articuloCodigo:"",detalle:"",cantidad:"",unidadMedida:"Unidad",montoTotal:""}]);
+  const [impuestos,setImpuestos]=useState([{_k:1,concepto:"",monto:""}]);
+  const [err,setErr]=useState(""); const [guardando,setGuardando]=useState(false); const [ok,setOk]=useState(false);
 
-  const sub=lineas.reduce((s,l)=>s+(parseFloat(l.cantidad)||0)*(parseFloat(l.precioUnitario)||0),0);
-  const total=sub+(parseFloat(imp)||0);
-  const agregar=()=>setLineas(p=>[...p,{_k:Date.now(),articuloId:null,articuloNombre:"",articuloCodigo:"",cantidad:"",precioUnitario:""}]);
+  const sub=lineas.reduce((s,l)=>s+(parseFloat(l.montoTotal)||0),0);
+  const totalImp=impuestos.reduce((s,x)=>s+(parseFloat(x.monto)||0),0);
+  const total=sub+totalImp;
+
+  const agregar=()=>setLineas(p=>[...p,{_k:Date.now(),articuloId:null,articuloNombre:"",articuloCodigo:"",detalle:"",cantidad:"",unidadMedida:"Unidad",montoTotal:""}]);
   const mod=(i,d)=>setLineas(p=>p.map((l,idx)=>idx===i?d:l));
   const del=i=>setLineas(p=>p.filter((_,idx)=>idx!==i));
+  const agregarImp=()=>setImpuestos(p=>[...p,{_k:Date.now(),concepto:"",monto:""}]);
+  const modImp=(i,d)=>setImpuestos(p=>p.map((x,idx)=>idx===i?d:x));
+  const delImp=i=>setImpuestos(p=>p.filter((_,idx)=>idx!==i));
 
   const guardar=async()=>{
     if(!enc.proveedorId){setErr("Seleccione proveedor");return;}
     if(!lineas.length){setErr("Agregue al menos un artículo");return;}
-    if(lineas.some(l=>!l.articuloId||(+l.cantidad)<=0)){setErr("Complete artículo y cantidad en todas las líneas");return;}
+    if(lineas.some(l=>!l.articuloId||(parseFloat(l.cantidad))<=0||(parseFloat(l.montoTotal))<=0)){setErr("Complete artículo, cantidad y monto total en todas las líneas");return;}
     setGuardando(true); setErr("");
     try{
       const prov=proveedores.find(p=>p.id===+enc.proveedorId);
       const {data:compData}=await sb.from("compras").insert({
         fecha:enc.fecha,proveedor_id:+enc.proveedorId,proveedor_nombre:prov?.razonSocial||"",
         tipo_boleta:enc.tipoBoleta,nro_comprobante:enc.nroComprobante||"",
-        total_detalle:sub,total_impuestos:+imp||0,total_compra:total,usuario_nombre:usuario.nombre
+        total_detalle:sub,total_impuestos:totalImp,total_compra:total,usuario_nombre:usuario.nombre
       });
       const compId=compData[0].id;
-      await sb.from("compras_detalle").insert(lineas.map(l=>({
-        compra_id:compId,articulo_id:l.articuloId,articulo_nombre:l.articuloNombre,articulo_codigo:l.articuloCodigo,
-        detalle:l.detalle||"",cantidad:+l.cantidad,precio_unitario:+l.precioUnitario,total:(+l.cantidad)*(+l.precioUnitario)
-      })));
+      await sb.from("compras_detalle").insert(lineas.map(l=>{
+        const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0;
+        const precFrac=cant>0?montoTot/cant:0;
+        return {compra_id:compId,articulo_id:l.articuloId,articulo_nombre:l.articuloNombre,
+          articulo_codigo:l.articuloCodigo,detalle:l.detalle||"",unidad_medida:l.unidadMedida||"Unidad",
+          cantidad:cant,precio_unitario:precFrac,precio_fraccion:precFrac,total:montoTot};
+      }));
+      // FIX: rastreo local de stock para artículos duplicados en misma factura
+      const stockLocal={}; const precioLocal={};
       for(const l of lineas){
-        const art=articulos.find(a=>a.id===l.articuloId);
-        if(art){
-          const nuevoStock=(art.stock||0)+(+l.cantidad||0);
-          await sb.from("articulos").eq("id",art.id).update({stock:nuevoStock});
-          setArticulos(p=>p.map(a=>a.id===art.id?{...a,stock:nuevoStock}:a));
-        }
+        const artId=l.articuloId; if(!artId) continue;
+        const art=articulos.find(a=>a.id===artId); if(!art) continue;
+        const baseStock=stockLocal[artId]!==undefined?stockLocal[artId]:(art.stock||0);
+        const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0;
+        const precFrac=cant>0?montoTot/cant:0;
+        stockLocal[artId]=baseStock+cant;
+        precioLocal[artId]={precio:precFrac,fecha:enc.fecha,proveedor:prov?.razonSocial||""};
       }
-      const nuevaComp={id:compId,fecha:enc.fecha,proveedorId:+enc.proveedorId,proveedorNombre:prov?.razonSocial||"",tipoBoleta:enc.tipoBoleta,nroComprobante:enc.nroComprobante||"" ,totalDetalle:sub,totalImpuestos:+imp||0,totalCompra:total,usuario:usuario.nombre,lineas:lineas.map(l=>({...l,total:(+l.cantidad)*(+l.precioUnitario)}))};
-      setCompras(p=>[...p,nuevaComp]);
+      for(const [artIdStr,nuevoStock] of Object.entries(stockLocal)){
+        const artId=+artIdStr; const info=precioLocal[artId];
+        await sb.from("articulos").eq("id",artId).update({stock:nuevoStock,precio:info.precio,ultima_fecha_compra:info.fecha,ultimo_proveedor_compra:info.proveedor});
+        setArticulos(p=>p.map(a=>a.id===artId?{...a,stock:nuevoStock,precio:info.precio,ultimaFechaCompra:info.fecha,ultimoProveedorCompra:info.proveedor}:a));
+      }
+      const lineasGuardadas=lineas.map(l=>{
+        const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0; const precFrac=cant>0?montoTot/cant:0;
+        return {articuloId:l.articuloId,articuloNombre:l.articuloNombre,articuloCodigo:l.articuloCodigo,detalle:l.detalle||"",unidadMedida:l.unidadMedida||"Unidad",cantidad:cant,precioUnitario:precFrac,precioFraccion:precFrac,total:montoTot};
+      });
+      setCompras(p=>[...p,{id:compId,fecha:enc.fecha,proveedorId:+enc.proveedorId,proveedorNombre:prov?.razonSocial||"",tipoBoleta:enc.tipoBoleta,nroComprobante:enc.nroComprobante||"",totalDetalle:sub,totalImpuestos:totalImp,totalCompra:total,usuario:usuario.nombre,lineas:lineasGuardadas}]);
       setOk(true); setTimeout(onVolver,1500);
     }catch(e){setErr("Error al guardar: "+e.message);}
     finally{setGuardando(false);}
   };
 
-  if(ok)return(<div style={{textAlign:"center",padding:60}}><div style={{fontSize:48}}>✅</div><h3 style={{color:"#16A34A",marginTop:10}}>¡COMPRA GUARDADA!</h3><p style={{color:"#94A3B8",marginTop:6}}>Stock actualizado en la base de datos.</p></div>);
+  if(ok)return(<div style={{textAlign:"center",padding:60}}><div style={{fontSize:48}}>✅</div><h3 style={{color:"#16A34A",marginTop:10}}>¡COMPRA GUARDADA!</h3><p style={{color:"#94A3B8",marginTop:6}}>Stock y precios actualizados.</p></div>);
   return(
     <div>
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
@@ -1088,25 +1154,42 @@ function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usua
         <div style={{overflowX:"auto"}}>
           <table>
             <thead><tr>
-                  <th>ARTÍCULO</th><th>CANT.</th><th>PRECIO $</th>
-                  {(enc.tipoBoleta==="Factura B"||enc.tipoBoleta==="Factura C")&&<th>IVA %</th>}
-                  {(enc.tipoBoleta==="Factura B"||enc.tipoBoleta==="Factura C")&&<th>PRECIO S/IVA $</th>}
-                  <th>TOTAL $</th><th></th>
-                </tr></thead>
+              <th>ARTÍCULO</th><th>DETALLE / MARCA</th><th>CANT.</th><th>UNIDAD</th>
+              <th>MONTO TOTAL $</th><th style={{textAlign:"right",color:"#85C1E9"}}>PRECIO FRACCIÓN $</th><th></th>
+            </tr></thead>
             <tbody>
-              {lineas.map((l,i)=><LineaConRef key={l._k} linea={l} articulos={articulos} setArticulos={setArticulos} onChange={d=>mod(i,d)} onDelete={()=>del(i)} mostrarSugerido={false} tipoBoleta={enc.tipoBoleta}/>)}
-              {!lineas.length&&<tr><td colSpan={5} style={{textAlign:"center",color:"#94A3B8",padding:14}}>Sin líneas</td></tr>}
+              {lineas.map((l,i)=><LineaCompraRow key={l._k} linea={l} articulos={articulos} onChange={d=>mod(i,d)} onDelete={()=>del(i)}/>)}
+              {!lineas.length&&<tr><td colSpan={7} style={{textAlign:"center",color:"#94A3B8",padding:14}}>Sin líneas</td></tr>}
             </tbody>
           </table>
+        </div>
+        <div style={{marginTop:8,padding:"8px 12px",background:"#EBF5FB",borderRadius:6,fontSize:12,color:"#1A5276"}}>
+          💡 <b>MONTO TOTAL $</b>: total pagado por ese artículo en la factura. <b>PRECIO FRACCIÓN $</b>: monto ÷ cantidad = costo por unidad (se guarda como último precio de compra).
         </div>
       </div>
       <div className="sec" style={{borderTop:"3px solid #16A34A"}}>
         <div className="sec-title">━━ PIE ━━</div>
-        <div style={{display:"flex",flexDirection:"column",gap:10,maxWidth:340,marginLeft:"auto"}}>
-          <div style={{display:"flex",justifyContent:"space-between"}}><span style={{fontWeight:700}}>SUBTOTAL:</span><strong style={{color:"#2563A8"}}>$ {fmtP(sub)}</strong></div>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10}}>
-            <label style={{margin:0,whiteSpace:"nowrap"}}>TOTAL IMPUESTOS $:</label>
-            <input type="number" step="0.01" min={0} value={imp} onChange={e=>setImp(e.target.value)} style={{width:120,textAlign:"right"}} placeholder="0,00"/>
+        <div style={{display:"flex",flexDirection:"column",gap:10,maxWidth:460,marginLeft:"auto"}}>
+          <div style={{display:"flex",justifyContent:"space-between"}}>
+            <span style={{fontWeight:700}}>SUBTOTAL ARTÍCULOS:</span>
+            <strong style={{color:"#2563A8"}}>$ {fmtP(sub)}</strong>
+          </div>
+          <div style={{background:"#F8F9FA",borderRadius:8,padding:12,border:"1px solid #D6EAF8"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <span style={{fontWeight:700,fontSize:12,color:"#1A5276",textTransform:"uppercase",letterSpacing:0.3}}>Impuestos / Percepciones</span>
+              <button className="btn btn-primary" onClick={agregarImp} style={{fontSize:11,padding:"4px 12px"}}>+ AGREGAR</button>
+            </div>
+            {impuestos.map((imp,i)=>(
+              <div key={imp._k} style={{display:"flex",gap:8,alignItems:"center",marginBottom:6}}>
+                <input value={imp.concepto} onChange={e=>modImp(i,{...imp,concepto:e.target.value})} placeholder="Concepto (ej: IVA 21%, IIBB...)" style={{flex:1,fontSize:13}}/>
+                <input value={imp.monto} type="number" step="0.01" min={0} onChange={e=>modImp(i,{...imp,monto:e.target.value})} style={{width:120,textAlign:"right",fontSize:13}} placeholder="0,00"/>
+                {impuestos.length>1&&<button className="btn btn-danger" onClick={()=>delImp(i)} style={{padding:"4px 8px",fontSize:11,flexShrink:0}}>✕</button>}
+              </div>
+            ))}
+            <div style={{display:"flex",justifyContent:"space-between",paddingTop:6,borderTop:"1px dashed #AED6F1",marginTop:4}}>
+              <span style={{fontWeight:600,fontSize:13,color:"#7C3AED"}}>Total impuestos:</span>
+              <strong style={{color:"#7C3AED"}}>$ {fmtP(totalImp)}</strong>
+            </div>
           </div>
           <div style={{display:"flex",justifyContent:"space-between",borderTop:"2px solid #E8620A",paddingTop:10}}>
             <span style={{fontWeight:700,fontSize:14}}>TOTAL COMPRA:</span>
@@ -1120,6 +1203,7 @@ function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usua
     </div>
   );
 }
+
 
 function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario}){
   const [vista,setVista]=useState("lista");
@@ -1144,8 +1228,8 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario}
           ))}
         </div></div>
         <div style={{background:"#fff",borderRadius:8,overflow:"auto",marginBottom:12,boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}>
-          <table><thead><tr><th>ARTÍCULO</th><th>CANT.</th><th>P.UNIT $</th><th>TOTAL $</th></tr></thead>
-            <tbody>{c.lineas.map((l,i)=><tr key={i}><td><b>{l.articuloCodigo}</b> {l.articuloNombre}</td><td>{l.cantidad}</td><td>$ {fmtP(l.precioUnitario)}</td><td style={{fontWeight:700}}>$ {fmtP(l.total)}</td></tr>)}</tbody>
+          <table><thead><tr><th>ARTÍCULO</th><th>DETALLE/MARCA</th><th>CANT.</th><th>UNIDAD</th><th style={{textAlign:"right"}}>MONTO TOTAL $</th><th style={{textAlign:"right"}}>PRECIO FRACC. $</th></tr></thead>
+            <tbody>{c.lineas.map((l,i)=><tr key={i}><td><b>{l.articuloCodigo}</b> {l.articuloNombre}</td><td style={{fontSize:12,color:"#5D6D7E"}}>{l.detalle||<span style={{color:"#BDC3C7"}}>—</span>}</td><td>{l.cantidad}</td><td style={{fontSize:12,color:"#7F8C8D"}}>{l.unidadMedida||"—"}</td><td style={{textAlign:"right",fontWeight:700}}>$ {fmtP(l.total)}</td><td style={{textAlign:"right",fontWeight:700,color:"#0891B2"}}>$ {fmtP(l.precioFraccion||l.precioUnitario)}</td></tr>)}</tbody>
           </table>
         </div>
         <div className="sec"><div style={{display:"flex",flexDirection:"column",gap:8,maxWidth:280,marginLeft:"auto"}}>
