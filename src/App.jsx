@@ -98,7 +98,7 @@ const sb = {
   })
 };
 
-const mapArt  = r => ({id:r.id,codigo:r.codigo,codigoPropio:r.codigo_propio||"",nombre:r.nombre,descripcion:r.descripcion||"",unidad:r.unidad||"Unidad",stock:+r.stock||0,precio:+r.precio||0,rentabilidad:+r.rentabilidad||0,activo:r.activo});
+const mapArt  = r => ({id:r.id,codigo:r.codigo,codigoPropio:r.codigo_propio||"",nombre:r.nombre,descripcion:r.descripcion||"",unidad:r.unidad||"Unidad",stock:+r.stock||0,precio:+r.precio||0,rentabilidad:+r.rentabilidad||0,activo:r.activo,ultimaFechaCompra:r.ultima_fecha_compra||"",ultimoProveedorCompra:r.ultimo_proveedor_compra||""});
 const mapCli  = r => ({id:r.id,razonSocial:r.razon_social,cuit:r.cuit,direccion:r.direccion||"",telefono:r.telefono||"",email:r.email||"",activo:r.activo});
 const mapProv = r => ({id:r.id,razonSocial:r.razon_social,cuit:r.cuit,direccion:r.direccion||"",telefono:r.telefono||"",email:r.email||"",contacto:r.contacto||"",activo:r.activo});
 const mapUsr  = r => ({id:r.id,usuario:r.usuario,password:r.password,nombre:r.nombre,rol:r.rol});
@@ -112,7 +112,7 @@ const mapVta  = r => ({
   id:r.id,fecha:r.fecha,clienteId:r.cliente_id,clienteNombre:r.cliente_nombre,
   nroComprobante:r.nro_comprobante||"",nroFacOficial:r.nro_fac_oficial||"",totalVenta:+r.total_venta,usuario:r.usuario_nombre,lineas:[]
 });
-const mapLinComp = r => ({articuloId:r.articulo_id,articuloNombre:r.articulo_nombre,articuloCodigo:r.articulo_codigo,detalle:r.detalle||"",cantidad:+r.cantidad,precioUnitario:+r.precio_unitario,total:+r.total,porcentajeIva:+r.porcentaje_iva||0,precioSinIva:+r.precio_sin_iva||0});
+const mapLinComp = r => ({articuloId:r.articulo_id,articuloNombre:r.articulo_nombre,articuloCodigo:r.articulo_codigo,detalle:r.detalle||"",unidadMedida:r.unidad_medida||"",cantidad:+r.cantidad,precioUnitario:+r.precio_unitario,precioFraccion:+r.precio_fraccion||+r.precio_unitario||0,total:+r.total,porcentajeIva:+r.porcentaje_iva||0,precioSinIva:+r.precio_sin_iva||0});
 const mapLinVta  = r => ({articuloId:r.articulo_id,articuloNombre:r.articulo_nombre,articuloCodigo:r.articulo_codigo,cantidad:+r.cantidad,precioCosto:+r.precio_costo,rentabilidad:+r.rentabilidad,precioUnitario:+r.precio_unitario,subtotal:+r.subtotal});
 
 const css = `
