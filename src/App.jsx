@@ -112,8 +112,10 @@ const mapVta  = r => ({
   id:r.id,fecha:r.fecha,clienteId:r.cliente_id,clienteNombre:r.cliente_nombre,
   nroComprobante:r.nro_comprobante||"",nroFacOficial:r.nro_fac_oficial||"",totalVenta:+r.total_venta,usuario:r.usuario_nombre,lineas:[]
 });
-const mapLinComp = r => ({articuloId:r.articulo_id,articuloNombre:r.articulo_nombre,articuloCodigo:r.articulo_codigo,detalle:r.detalle||"",unidadMedida:r.unidad_medida||"",cantidad:+r.cantidad,precioUnitario:+r.precio_unitario,precioFraccion:+r.precio_fraccion||+r.precio_unitario||0,total:+r.total,porcentajeIva:+r.porcentaje_iva||0,precioSinIva:+r.precio_sin_iva||0});
-const mapLinVta  = r => ({articuloId:r.articulo_id,articuloNombre:r.articulo_nombre,articuloCodigo:r.articulo_codigo,cantidad:+r.cantidad,precioCosto:+r.precio_costo,rentabilidad:+r.rentabilidad,precioUnitario:+r.precio_unitario,subtotal:+r.subtotal});
+const mapLinComp = r => ({articuloId:r.articulo_id,articuloNombre:r.articulo_nombre,articuloCodigo:r.articulo_codigo,detalle:r.detalle||"",descuento:+r.descuento||0,unidadMedida:r.unidad_medida||"",cantidad:+r.cantidad,precioUnitario:+r.precio_unitario,precioFraccion:+r.precio_fraccion||+r.precio_unitario||0,total:+r.total,porcentajeIva:+r.porcentaje_iva||0,precioSinIva:+r.precio_sin_iva||0});
+const mapLinVta  = r => ({articuloId:r.articulo_id,articuloNombre:r.articulo_nombre,articuloCodigo:r.articulo_codigo,unidadMedida:r.unidad_medida||'',cantidad:+r.cantidad,precioCosto:+r.precio_costo,rentabilidad:+r.rentabilidad,precioUnitario:+r.precio_unitario,subtotal:+r.subtotal});
+const mapPagoCli  = r => ({id:r.id,fecha:r.fecha,clienteId:r.cliente_id,clienteNombre:r.cliente_nombre,monto:+r.monto,medioPago:r.medio_pago,detallePago:r.detalle_pago||"",concepto:r.concepto||"",ventaId:r.venta_id||null,usuario:r.usuario_nombre});
+const mapPagoProv = r => ({id:r.id,fecha:r.fecha,proveedorId:r.proveedor_id,proveedorNombre:r.proveedor_nombre,monto:+r.monto,medioPago:r.medio_pago,detallePago:r.detalle_pago||"",concepto:r.concepto||"",compraId:r.compra_id||null,usuario:r.usuario_nombre});
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -166,8 +168,11 @@ const css = `
 const fmtP = v => { const n=parseFloat(v); return (isNaN(n)?0:n).toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2}); };
 const hoy = () => new Date().toISOString().slice(0,10);
 const precioSugerido = (precio,rent) => { const p=parseFloat(precio)||0,r=parseFloat(rent)||0; return p+p*r/100; };
+const fmtFechaCorta = d => d ? `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}` : "";
 
 const TIPOS = ["Factura A","Factura B","Factura C","Factura M","Ticket A","Ticket B","NO OFICIAL"];
+const MEDIOS_PAGO = ["EFECTIVO","TRANSFERENCIA","DÉBITO","CRÉDITO","CHEQUE","MERCADO PAGO","OTRO"];
+const VERSION = "2.0";
 const UNIDADES_COMPRA = ["Unidad","Kg","g","Litro","ml","Metro","Caja","Cajón","Bidón","Bolsa","Resma","Par","Docena"];
 const MENU = [
   {id:"dash",icon:"🏠",label:"INICIO",roles:["admin","operador"]},
@@ -178,10 +183,49 @@ const MENU = [
   {id:"vta",icon:"💰",label:"VENTAS",roles:["admin","operador"]},
   {id:"rep",icon:"📊",label:"REPORTES",roles:["admin","operador"]},
   {id:"mov",icon:"📋",label:"MOVIMIENTOS",roles:["admin","operador"]},
+  {id:"cta",icon:"💳",label:"CTA. CORRIENTE",roles:["admin","operador"]},
   {id:"usr",icon:"🔐",label:"USUARIOS",roles:["admin"]},
 ];
 
-function Loading({msg="Cargando..."}){ return <div className="loading"><div className="spinner"/><span>{msg}</span></div>; }
+
+// ── LOGO FARO GESTION (SVG inline) ───────────────────────────────────────────
+function LogoFaro({size=72,showText=true,dark=false}){
+  return(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+      <svg width={size} height={size*1.15} viewBox="0 0 80 92" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="40" y1="8" x2="40" y2="1" stroke="#FCD34D" strokeWidth="3" strokeLinecap="round"/>
+        <line x1="52" y1="12" x2="58" y2="5" stroke="#FCD34D" strokeWidth="2.5" strokeLinecap="round"/>
+        <line x1="28" y1="12" x2="22" y2="5" stroke="#FCD34D" strokeWidth="2.5" strokeLinecap="round"/>
+        <line x1="61" y1="20" x2="69" y2="15" stroke="#FCD34D" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+        <line x1="19" y1="20" x2="11" y2="15" stroke="#FCD34D" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+        <ellipse cx="40" cy="21" rx="11" ry="9" fill="#FCD34D" opacity="0.85"/>
+        <ellipse cx="40" cy="21" rx="6" ry="5" fill="#FFFDE7"/>
+        <rect x="27" y="26" width="26" height="10" rx="2" fill="#1A5276"/>
+        <rect x="29" y="28" width="8" height="6" rx="1" fill="#7DD3FC" opacity="0.9"/>
+        <rect x="43" y="28" width="8" height="6" rx="1" fill="#7DD3FC" opacity="0.9"/>
+        <rect x="24" y="35" width="32" height="3" rx="1.5" fill="#475569"/>
+        <polygon points="28,38 52,38 47,68 33,68" fill="white"/>
+        <polygon points="28,38 52,38 51,47 29,47" fill="#E8620A" opacity="0.9"/>
+        <polygon points="29.5,56 50.5,56 49,65 31,65" fill="#E8620A" opacity="0.9"/>
+        <rect x="26" y="68" width="28" height="13" rx="3" fill="#1A5276"/>
+        <rect x="23" y="65" width="34" height="5" rx="2" fill="#0F3460"/>
+        <rect x="35" y="71" width="10" height="10" rx="3" fill="#0A2540"/>
+        <path d="M8 83 Q20 79 32 83 Q44 87 56 83 Q66 79 74 83" stroke="#7DD3FC" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+        <path d="M4 88 Q18 84 32 88 Q46 92 60 88 Q70 84 78 88" stroke="#7DD3FC" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.5"/>
+      </svg>
+      {showText&&(
+        <div style={{textAlign:"center",lineHeight:1.2}}>
+          <div style={{fontWeight:800,fontSize:14,letterSpacing:1,color:dark?"#fff":"#1A3A5C"}}>
+            FARO<span style={{color:"#E8620A"}}>GESTION</span>
+          </div>
+          <div style={{fontSize:9,color:dark?"rgba(255,255,255,0.5)":"#94A3B8",letterSpacing:2,textTransform:"uppercase"}}>Sistema Comercial</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Loading({msg="Cargando..."}){  return <div className="loading"><div className="spinner"/><span>{msg}</span></div>; }
 
 function Modal({title,onClose,children,w=680}){
   return(
@@ -220,10 +264,7 @@ function Login({onLogin}){
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,#1A5276 0%,#1A6FA8 50%,#2E86C1 100%)"}}>
       <div style={{background:"#fff",borderRadius:12,padding:36,width:"100%",maxWidth:360,margin:16,boxShadow:"0 20px 60px rgba(0,0,0,0.4)"}}>
         <div style={{textAlign:"center",marginBottom:24}}>
-          <img src="/WhatsApp Image 2026-05-04 at 23.55.48.jpeg"
-            alt="FaroGestion"
-            style={{width:180,height:"auto",borderRadius:8,marginBottom:8}}/>
-          <div style={{fontSize:11,color:"#94A3B8",marginTop:4}}>Sistema de Gestión Comercial ☁️</div>
+          <LogoFaro size={80} showText={true} dark={false}/>
         </div>
         {err&&<div className="err">{err}</div>}
         <div className="fg"><label>USUARIO</label>
@@ -245,22 +286,20 @@ function Login({onLogin}){
   );
 }
 
-function Sidebar({usuario,page,setPage,onLogout}){
+function Sidebar({usuario,page,setPage,onLogout,onRefresh}){
   return(
-    <div style={{width:210,background:"#1A5276",minHeight:"100vh",display:"flex",flexDirection:"column",flexShrink:0}}>
-      <div style={{padding:"14px 12px",borderBottom:"1px solid rgba(255,255,255,0.15)",textAlign:"center"}}>
-        <img src="/WhatsApp Image 2026-05-04 at 23.55.48.jpeg"
-          alt="FaroGestion"
-          style={{width:"100%",maxWidth:160,height:"auto",borderRadius:6,filter:"brightness(1.1)"}}/>
+    <div style={{width:210,background:"#0F0F0F",height:"100vh",display:"flex",flexDirection:"column",flexShrink:0,position:"fixed",top:0,left:0,zIndex:200,overflowY:"auto"}}>
+      <div style={{padding:"14px 12px",borderBottom:"1px solid rgba(255,255,255,0.1)",textAlign:"center"}}>
+        <LogoFaro size={56} showText={true} dark={true}/>
       </div>
       <nav style={{flex:1,paddingTop:8,overflowY:"auto"}}>
         {MENU.filter(m=>m.roles.includes(usuario.rol)).map(m=>(
           <button key={m.id} onClick={()=>setPage(m.id)} style={{
             display:"flex",alignItems:"center",gap:10,width:"100%",padding:"11px 16px",
-            background:page===m.id?"#1A6FA8":"transparent",border:"none",cursor:"pointer",
-            color:page===m.id?"#fff":"rgba(255,255,255,0.72)",
+            background:page===m.id?"#E8620A":"transparent",border:"none",cursor:"pointer",
+            color:page===m.id?"#fff":"rgba(255,255,255,0.65)",
             fontFamily:"'Courier New',monospace",fontWeight:700,fontSize:12,
-            borderLeft:page===m.id?"3px solid #85C1E9":"3px solid transparent",textAlign:"left"
+            borderLeft:page===m.id?"3px solid #FCD34D":"3px solid transparent",textAlign:"left"
           }}>
             <span>{m.icon}</span><span>{m.label}</span>
           </button>
@@ -270,13 +309,14 @@ function Sidebar({usuario,page,setPage,onLogout}){
         <div style={{fontSize:9,color:"rgba(255,255,255,0.5)"}}>SESIÓN</div>
         <div style={{color:"#fff",fontWeight:700,fontSize:12}}>{usuario.nombre}</div>
         <div style={{fontSize:9,color:"#E8620A",marginBottom:10}}>{usuario.rol.toUpperCase()}</div>
+        <button onClick={onRefresh} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.2)",color:"rgba(255,255,255,0.7)",borderRadius:6,padding:"7px 14px",cursor:"pointer",fontSize:11,width:"100%",marginBottom:6}}>🔄 ACTUALIZAR DATOS</button>
         <button className="btn btn-danger" onClick={onLogout} style={{width:"100%",fontSize:11}}>CERRAR SESIÓN</button>
       </div>
       <div style={{padding:"8px 12px",borderTop:"1px solid rgba(255,255,255,0.06)",textAlign:"center"}}>
         <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",lineHeight:1.6}}>
           Dev. <span style={{color:"rgba(255,255,255,0.55)",fontWeight:600}}>DASantini</span> &amp; Claude AI
         </div>
-        <div style={{fontSize:9,color:"rgba(255,255,255,0.3)"}}>v1.0 · 2026</div>
+        <div style={{fontSize:9,color:"rgba(255,255,255,0.3)"}}>v{VERSION} · 2026</div>
       </div>
     </div>
   );
@@ -304,10 +344,7 @@ function Dashboard({usuario}){
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"20px 32px",gap:0,minHeight:"100%"}}>
       {/* Logo — reducido de 220px a 180px */}
       <div style={{marginBottom:20}}>
-        <img src="/WhatsApp Image 2026-05-04 at 23.55.48.jpeg"
-          alt="FaroGestion"
-          style={{width:180,height:"auto",borderRadius:12,marginBottom:10,filter:"drop-shadow(0 8px 24px rgba(26,111,168,0.25))"}}/>
-        <p style={{fontSize:13,color:"#7F8C8D",fontWeight:500,letterSpacing:2,textTransform:"uppercase",textAlign:"center"}}>Sistema de Gestión Comercial</p>
+        <LogoFaro size={100} showText={true} dark={false}/>
       </div>
 
       {/* Fecha y hora — reducido margen inferior */}
@@ -503,8 +540,8 @@ function Articulos({articulos,setArticulos,usuario}){
         {usuario.rol==="admin"&&<button className="btn btn-outline" onClick={()=>setModalImport(true)} style={{borderColor:"#16A34A",color:"#16A34A"}}>📥 IMPORTAR XLS</button>}
         {usuario.rol==="admin"&&<button className="btn btn-naranja" onClick={nuevo}>+ NUEVO</button>}
       </div>
-      <div style={{background:"#fff",borderRadius:8,overflow:"auto",boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}>
-        <table>
+      <div style={{background:"#fff",borderRadius:8,overflowX:"auto",overflowY:"visible",boxShadow:"0 2px 8px rgba(0,0,0,0.08)",WebkitOverflowScrolling:"touch"}}>
+        <table style={{minWidth:900}}>
           {/* FIX: whiteSpace nowrap en columnas cortas + minWidth en NOMBRE */}
           <thead><tr>
             <th style={{whiteSpace:"nowrap"}}>#ID</th>
@@ -750,7 +787,7 @@ function Proveedores({proveedores,setProveedores,usuario}){
                 <td style={{fontWeight:600,color:"#1A5276"}}>{p.contacto||<span style={{color:"#BDC3C7"}}>—</span>}</td>
                 <td>{p.telefono}</td><td>{p.email}</td>
                 <td><span className="badge" style={{background:p.activo?"#1A8F4A":"#C0392B",color:"#fff"}}>{p.activo?"ACTIVO":"INACT."}</span></td>
-                <td><button className="btn btn-outline" onClick={()=>editar(p)} style={{fontSize:12,padding:"5px 12px"}}>✏️ Editar</button></td>
+                <td><button className="btn btn-outline" onClick={()=>editar(p)} style={{fontSize:11,padding:"4px 10px"}}>✏️</button></td>
               </tr>
             ))}
             {!filtrados.length&&<tr><td colSpan={7} style={{textAlign:"center",color:"#7F8C8D",padding:24}}>Sin resultados</td></tr>}
@@ -902,6 +939,7 @@ function BuscadorArticulo({linea,articulos,setArticulos,onChange,onDelete,mostra
       articuloId:a.id,
       articuloNombre:a.nombre,
       articuloCodigo:a.codigo,
+      unidadMedida:a.unidad||'Unidad',
       precioCosto:+a.precio||0,
       rentabilidad:+a.rentabilidad||0,
       precioUnitario:pu,
@@ -970,6 +1008,7 @@ function BuscadorArticulo({linea,articulos,setArticulos,onChange,onDelete,mostra
             <span style={{fontSize:16,opacity:0.6}}>🔍</span>
           </div>
         </td>
+        <td style={{fontSize:12,color:"#7F8C8D",whiteSpace:"nowrap",minWidth:70}}>{linea.unidadMedida||<span style={{color:"#BDC3C7"}}>—</span>}</td>
         <td>
           <input ref={cantidadRef} value={linea.cantidad||""} type="number" min={1}
             onChange={e=>onChange({...linea,cantidad:e.target.value})}
@@ -1003,12 +1042,52 @@ function BuscadorArticulo({linea,articulos,setArticulos,onChange,onDelete,mostra
 }
 function LineaConRef(props){const cantRef=useRef(null);return <BuscadorArticulo {...props} cantidadRef={cantRef}/>;}
 
+
+// ── INPUT NUMÉRICO FORMATO ARGENTINO (miles con punto, decimal con coma) ───────
+function NumInputAR({value, onChange, style, placeholder, disabled}){
+  const [focused, setFocused] = useState(false);
+  const [raw, setRaw] = useState("");
+  const fmt = v => {
+    if(v===""||v===undefined||v===null) return "";
+    const n = parseFloat(String(v).replace(",",".").replace(/\s/g,""));
+    if(isNaN(n)) return String(v);
+    return n.toLocaleString("es-AR",{minimumFractionDigits:0,maximumFractionDigits:2});
+  };
+  const parse = v => String(v).replace(/\./g,"").replace(",",".");
+  const onFocus = () => {
+    setFocused(true);
+    const str = (value!==undefined&&value!==null&&value!=="")?String(value).replace(".",","):"";
+    setRaw(str);
+  };
+  const onBlur = () => {
+    setFocused(false);
+    const parsed = parseFloat(parse(raw));
+    onChange(isNaN(parsed)?(raw==="-"?"-":""):parsed);
+  };
+  const onCh = e => {
+    const v = e.target.value;
+    if(!/^-?[\d.,]*$/.test(v)) return;
+    setRaw(v);
+    const parsed = parseFloat(parse(v));
+    if(!isNaN(parsed)) onChange(parsed);
+    else if(v===""||v==="-") onChange(v);
+  };
+  return(
+    <input type="text"
+      value={focused ? raw : fmt(value)}
+      onFocus={onFocus} onBlur={onBlur} onChange={onCh}
+      style={style} placeholder={placeholder} disabled={disabled}/>
+  );
+}
+
 // ── LÍNEA DE COMPRA (detalle/marca, unidad, monto total, precio fracción) ─────
-function LineaCompraRow({linea,articulos,onChange,onDelete}){
+function LineaCompraRow({linea,articulos,onChange,onDelete,onAddAfter}){
   const [modalAbierto,setModalAbierto]=useState(false);
   const cantidad=parseFloat(linea.cantidad)||0;
   const montoTotal=parseFloat(linea.montoTotal)||0;
-  const precioFraccion=cantidad>0&&montoTotal>0?montoTotal/cantidad:0;
+  const descuento=parseFloat(linea.descuento)||0;
+  const montoNeto=montoTotal-descuento;
+  const precioFraccion=cantidad!==0?montoNeto/cantidad:0;
   const selArticulo=(a)=>{
     onChange({...linea,articuloId:a.id,articuloNombre:a.nombre,articuloCodigo:a.codigo,
       unidadMedida:linea.unidadMedida||a.unidad||"Unidad",cantidad:linea.cantidad||1});
@@ -1024,17 +1103,30 @@ function LineaCompraRow({linea,articulos,onChange,onDelete}){
           </div>
         </td>
         <td><input value={linea.detalle||""} onChange={e=>onChange({...linea,detalle:e.target.value})} placeholder="Marca/detalle" style={{width:120,fontSize:13}}/></td>
-        <td><input value={linea.cantidad||""} type="number" min={1} onChange={e=>onChange({...linea,cantidad:e.target.value})} style={{width:65,fontSize:13,textAlign:"center"}}/></td>
+        <td>
+          <NumInputAR value={linea.cantidad} onChange={v=>onChange({...linea,cantidad:v})}
+            style={{width:95,fontSize:13,textAlign:"center"}} placeholder="0"/>
+        </td>
         <td>
           <select value={linea.unidadMedida||"Unidad"} onChange={e=>onChange({...linea,unidadMedida:e.target.value})} style={{width:85,fontSize:13}}>
             {UNIDADES_COMPRA.map(u=><option key={u}>{u}</option>)}
           </select>
         </td>
-        <td><input value={linea.montoTotal||""} type="number" step="0.01" min={0} onChange={e=>onChange({...linea,montoTotal:e.target.value})} placeholder="Total pagado" style={{width:115,fontSize:13,textAlign:"right"}}/></td>
-        <td style={{textAlign:"right",fontWeight:700,color:"#0891B2",whiteSpace:"nowrap",minWidth:110}}>
-          {precioFraccion>0?"$ "+fmtP(precioFraccion):<span style={{color:"#BDC3C7"}}>—</span>}
+        <td>
+          <NumInputAR value={linea.montoTotal} onChange={v=>onChange({...linea,montoTotal:v})}
+            style={{width:115,fontSize:13,textAlign:"right"}} placeholder="Total pagado"/>
         </td>
-        <td><button className="btn btn-danger" onClick={onDelete} style={{padding:"4px 10px",fontSize:12}}>✕</button></td>
+        <td>
+          <NumInputAR value={linea.descuento} onChange={v=>onChange({...linea,descuento:v})}
+            style={{width:88,fontSize:13,textAlign:"right",color:"#C0392B"}} placeholder="0"/>
+        </td>
+        <td style={{textAlign:"right",fontWeight:700,color:"#0891B2",whiteSpace:"nowrap",minWidth:110}}>
+          {precioFraccion!==0?"$ "+fmtP(precioFraccion):<span style={{color:"#BDC3C7"}}>—</span>}
+        </td>
+        <td style={{whiteSpace:"nowrap"}}>
+          <button className="btn btn-danger" onClick={onDelete} style={{padding:"4px 7px",fontSize:11,marginRight:3}}>✕</button>
+          <button onClick={onAddAfter} title="Agregar línea aquí" style={{padding:"4px 7px",fontSize:11,background:"#1A8F4A",color:"#fff",border:"none",borderRadius:6,cursor:"pointer",fontWeight:700}}>+</button>
+        </td>
       </tr>
     </>
   );
@@ -1056,75 +1148,32 @@ async function exportarExcel(filas, nombreArchivo){
   XLSX.writeFile(wb, nombreArchivo+".xlsx");
 }
 
-function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usuario,onVolver}){
-  const [enc,setEnc]=useState({fecha:hoy(),proveedorId:"",tipoBoleta:"Factura B",nroComprobante:""});
-  const [lineas,setLineas]=useState([{_k:1,articuloId:null,articuloNombre:"",articuloCodigo:"",detalle:"",cantidad:"",unidadMedida:"Unidad",montoTotal:""}]);
-  const [impuestos,setImpuestos]=useState([{_k:1,concepto:"",monto:""}]);
-  const [err,setErr]=useState(""); const [guardando,setGuardando]=useState(false); const [ok,setOk]=useState(false);
+function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articulos,onGuardar,onVolver,guardando,err,ok}){
+  const [enc,setEnc]=useState(encInit);
+  const linNueva=()=>({_k:Date.now(),articuloId:null,articuloNombre:"",articuloCodigo:"",detalle:"",cantidad:"",unidadMedida:"Unidad",montoTotal:"",descuento:""});
+  const [lineas,setLineas]=useState(lineasInit);
+  const [impuestos,setImpuestos]=useState(impuestosInit);
 
-  const sub=lineas.reduce((s,l)=>s+(parseFloat(l.montoTotal)||0),0);
+  const sub=lineas.reduce((s,l)=>s+(parseFloat(l.montoTotal)||0)-(parseFloat(l.descuento)||0),0);
   const totalImp=impuestos.reduce((s,x)=>s+(parseFloat(x.monto)||0),0);
   const total=sub+totalImp;
 
-  const agregar=()=>setLineas(p=>[...p,{_k:Date.now(),articuloId:null,articuloNombre:"",articuloCodigo:"",detalle:"",cantidad:"",unidadMedida:"Unidad",montoTotal:""}]);
+  const agregar=()=>setLineas(p=>[...p,linNueva()]);
+  const agregarDespues=i=>setLineas(p=>{const n=[...p];n.splice(i+1,0,linNueva());return n;});
   const mod=(i,d)=>setLineas(p=>p.map((l,idx)=>idx===i?d:l));
   const del=i=>setLineas(p=>p.filter((_,idx)=>idx!==i));
   const agregarImp=()=>setImpuestos(p=>[...p,{_k:Date.now(),concepto:"",monto:""}]);
   const modImp=(i,d)=>setImpuestos(p=>p.map((x,idx)=>idx===i?d:x));
   const delImp=i=>setImpuestos(p=>p.filter((_,idx)=>idx!==i));
 
-  const guardar=async()=>{
-    if(!enc.proveedorId){setErr("Seleccione proveedor");return;}
-    if(!lineas.length){setErr("Agregue al menos un artículo");return;}
-    if(lineas.some(l=>!l.articuloId||(parseFloat(l.cantidad))<=0||(parseFloat(l.montoTotal))<=0)){setErr("Complete artículo, cantidad y monto total en todas las líneas");return;}
-    setGuardando(true); setErr("");
-    try{
-      const prov=proveedores.find(p=>p.id===+enc.proveedorId);
-      const {data:compData}=await sb.from("compras").insert({
-        fecha:enc.fecha,proveedor_id:+enc.proveedorId,proveedor_nombre:prov?.razonSocial||"",
-        tipo_boleta:enc.tipoBoleta,nro_comprobante:enc.nroComprobante||"",
-        total_detalle:sub,total_impuestos:totalImp,total_compra:total,usuario_nombre:usuario.nombre
-      });
-      const compId=compData[0].id;
-      await sb.from("compras_detalle").insert(lineas.map(l=>{
-        const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0;
-        const precFrac=cant>0?montoTot/cant:0;
-        return {compra_id:compId,articulo_id:l.articuloId,articulo_nombre:l.articuloNombre,
-          articulo_codigo:l.articuloCodigo,detalle:l.detalle||"",unidad_medida:l.unidadMedida||"Unidad",
-          cantidad:cant,precio_unitario:precFrac,precio_fraccion:precFrac,total:montoTot};
-      }));
-      // FIX: rastreo local de stock para artículos duplicados en misma factura
-      const stockLocal={}; const precioLocal={};
-      for(const l of lineas){
-        const artId=l.articuloId; if(!artId) continue;
-        const art=articulos.find(a=>a.id===artId); if(!art) continue;
-        const baseStock=stockLocal[artId]!==undefined?stockLocal[artId]:(art.stock||0);
-        const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0;
-        const precFrac=cant>0?montoTot/cant:0;
-        stockLocal[artId]=baseStock+cant;
-        precioLocal[artId]={precio:precFrac,fecha:enc.fecha,proveedor:prov?.razonSocial||""};
-      }
-      for(const [artIdStr,nuevoStock] of Object.entries(stockLocal)){
-        const artId=+artIdStr; const info=precioLocal[artId];
-        await sb.from("articulos").eq("id",artId).update({stock:nuevoStock,precio:info.precio,ultima_fecha_compra:info.fecha,ultimo_proveedor_compra:info.proveedor});
-        setArticulos(p=>p.map(a=>a.id===artId?{...a,stock:nuevoStock,precio:info.precio,ultimaFechaCompra:info.fecha,ultimoProveedorCompra:info.proveedor}:a));
-      }
-      const lineasGuardadas=lineas.map(l=>{
-        const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0; const precFrac=cant>0?montoTot/cant:0;
-        return {articuloId:l.articuloId,articuloNombre:l.articuloNombre,articuloCodigo:l.articuloCodigo,detalle:l.detalle||"",unidadMedida:l.unidadMedida||"Unidad",cantidad:cant,precioUnitario:precFrac,precioFraccion:precFrac,total:montoTot};
-      });
-      setCompras(p=>[...p,{id:compId,fecha:enc.fecha,proveedorId:+enc.proveedorId,proveedorNombre:prov?.razonSocial||"",tipoBoleta:enc.tipoBoleta,nroComprobante:enc.nroComprobante||"",totalDetalle:sub,totalImpuestos:totalImp,totalCompra:total,usuario:usuario.nombre,lineas:lineasGuardadas}]);
-      setOk(true); setTimeout(onVolver,1500);
-    }catch(e){setErr("Error al guardar: "+e.message);}
-    finally{setGuardando(false);}
-  };
+  const handleGuardar=()=>onGuardar({enc,lineas,impuestos,sub,totalImp,total});
 
   if(ok)return(<div style={{textAlign:"center",padding:60}}><div style={{fontSize:48}}>✅</div><h3 style={{color:"#16A34A",marginTop:10}}>¡COMPRA GUARDADA!</h3><p style={{color:"#94A3B8",marginTop:6}}>Stock y precios actualizados.</p></div>);
   return(
     <div>
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
         <button className="btn btn-outline" onClick={onVolver} style={{fontSize:12}}>← VOLVER</button>
-        <h2 style={{color:"#1A3A5C",fontSize:17,borderBottom:"3px solid #1A6FA8",paddingBottom:4}}>🛒 NUEVA COMPRA</h2>
+        <h2 style={{color:"#1A3A5C",fontSize:17,borderBottom:"3px solid #1A6FA8",paddingBottom:4}}>{titulo}</h2>
       </div>
       {err&&<div className="err">{err}</div>}
       <div className="sec" style={{borderTop:"3px solid #2563A8"}}>
@@ -1143,7 +1192,7 @@ function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usua
               {TIPOS.map(t=><option key={t}>{t}</option>)}
             </select>
           </div>
-          <div className="fg"><label>USUARIO</label><input value={usuario.nombre} disabled/></div>
+          <div className="fg"><label>USUARIO</label><input value={enc.usuario||""} disabled/></div>
         </div>
       </div>
       <div className="sec" style={{borderTop:"3px solid #E8620A"}}>
@@ -1155,16 +1204,20 @@ function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usua
           <table>
             <thead><tr>
               <th>ARTÍCULO</th><th>DETALLE / MARCA</th><th>CANT.</th><th>UNIDAD</th>
-              <th>MONTO TOTAL $</th><th style={{textAlign:"right",color:"#85C1E9"}}>PRECIO FRACCIÓN $</th><th></th>
+              <th>MONTO TOTAL $</th><th style={{color:"#FCA5A5"}}>DESCUENTO $</th>
+              <th style={{textAlign:"right",color:"#85C1E9"}}>PRECIO FRACCIÓN $</th><th></th>
             </tr></thead>
             <tbody>
-              {lineas.map((l,i)=><LineaCompraRow key={l._k} linea={l} articulos={articulos} onChange={d=>mod(i,d)} onDelete={()=>del(i)}/>)}
-              {!lineas.length&&<tr><td colSpan={7} style={{textAlign:"center",color:"#94A3B8",padding:14}}>Sin líneas</td></tr>}
+              {lineas.map((l,i)=>(
+                <LineaCompraRow key={l._k} linea={l} articulos={articulos}
+                  onChange={d=>mod(i,d)} onDelete={()=>del(i)} onAddAfter={()=>agregarDespues(i)}/>
+              ))}
+              {!lineas.length&&<tr><td colSpan={8} style={{textAlign:"center",color:"#94A3B8",padding:14}}>Sin líneas</td></tr>}
             </tbody>
           </table>
         </div>
         <div style={{marginTop:8,padding:"8px 12px",background:"#EBF5FB",borderRadius:6,fontSize:12,color:"#1A5276"}}>
-          💡 <b>MONTO TOTAL $</b>: total pagado por ese artículo en la factura. <b>PRECIO FRACCIÓN $</b>: monto ÷ cantidad = costo por unidad (se guarda como último precio de compra).
+          💡 <b>MONTO TOTAL $</b>: total bruto del ítem. <b>DESCUENTO $</b>: bonificación sobre ese ítem (resta al subtotal y al precio fracción). <b>+</b> en cada fila = insertar línea debajo.
         </div>
       </div>
       <div className="sec" style={{borderTop:"3px solid #16A34A"}}>
@@ -1176,18 +1229,18 @@ function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usua
           </div>
           <div style={{background:"#F8F9FA",borderRadius:8,padding:12,border:"1px solid #D6EAF8"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <span style={{fontWeight:700,fontSize:12,color:"#1A5276",textTransform:"uppercase",letterSpacing:0.3}}>Impuestos / Percepciones</span>
+              <span style={{fontWeight:700,fontSize:12,color:"#1A5276",textTransform:"uppercase",letterSpacing:0.3}}>Impuestos / Percepciones / Descuentos globales</span>
               <button className="btn btn-primary" onClick={agregarImp} style={{fontSize:11,padding:"4px 12px"}}>+ AGREGAR</button>
             </div>
             {impuestos.map((imp,i)=>(
               <div key={imp._k} style={{display:"flex",gap:8,alignItems:"center",marginBottom:6}}>
-                <input value={imp.concepto} onChange={e=>modImp(i,{...imp,concepto:e.target.value})} placeholder="Concepto (ej: IVA 21%, IIBB...)" style={{flex:1,fontSize:13}}/>
-                <input value={imp.monto} type="number" step="0.01" min={0} onChange={e=>modImp(i,{...imp,monto:e.target.value})} style={{width:120,textAlign:"right",fontSize:13}} placeholder="0,00"/>
+                <input value={imp.concepto} onChange={e=>modImp(i,{...imp,concepto:e.target.value})} placeholder="Concepto (ej: IVA 21%, IIBB, Desc. global...)" style={{flex:1,fontSize:13}}/>
+                <NumInputAR value={imp.monto} onChange={v=>modImp(i,{...imp,monto:v})} style={{width:130,textAlign:"right",fontSize:13}} placeholder="0,00"/>
                 {impuestos.length>1&&<button className="btn btn-danger" onClick={()=>delImp(i)} style={{padding:"4px 8px",fontSize:11,flexShrink:0}}>✕</button>}
               </div>
             ))}
             <div style={{display:"flex",justifyContent:"space-between",paddingTop:6,borderTop:"1px dashed #AED6F1",marginTop:4}}>
-              <span style={{fontWeight:600,fontSize:13,color:"#7C3AED"}}>Total impuestos:</span>
+              <span style={{fontWeight:600,fontSize:13,color:"#7C3AED"}}>Total impuestos/ajustes:</span>
               <strong style={{color:"#7C3AED"}}>$ {fmtP(totalImp)}</strong>
             </div>
           </div>
@@ -1197,15 +1250,172 @@ function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usua
           </div>
         </div>
         <div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}>
-          <button className="btn btn-naranja" onClick={guardar} disabled={guardando} style={{padding:"11px 26px",fontSize:14}}>{guardando?"GUARDANDO...":"💾 CONFIRMAR COMPRA"}</button>
+          <button className="btn btn-naranja" onClick={handleGuardar} disabled={guardando} style={{padding:"11px 26px",fontSize:14}}>{guardando?"GUARDANDO...":"💾 CONFIRMAR COMPRA"}</button>
         </div>
       </div>
     </div>
   );
 }
 
+function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usuario,onVolver}){
+  const [err,setErr]=useState(""); const [guardando,setGuardando]=useState(false); const [ok,setOk]=useState(false);
 
-function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario}){
+  const guardar=async({enc,lineas,impuestos,sub,totalImp,total})=>{
+    if(!enc.proveedorId){setErr("Seleccione proveedor");return;}
+    if(!lineas.length){setErr("Agregue al menos un artículo");return;}
+    if(lineas.some(l=>!l.articuloId||parseFloat(l.cantidad)===0||isNaN(parseFloat(l.cantidad)))){
+      setErr("Complete artículo y cantidad en todas las líneas (puede ser negativo para devoluciones)");return;}
+    setGuardando(true); setErr("");
+    try{
+      const prov=proveedores.find(p=>p.id===+enc.proveedorId);
+      const {data:compData}=await sb.from("compras").insert({
+        fecha:enc.fecha,proveedor_id:+enc.proveedorId,proveedor_nombre:prov?.razonSocial||"",
+        tipo_boleta:enc.tipoBoleta,nro_comprobante:enc.nroComprobante||"",
+        total_detalle:sub,total_impuestos:totalImp,total_compra:total,usuario_nombre:usuario.nombre
+      });
+      const compId=compData[0].id;
+      await sb.from("compras_detalle").insert(lineas.map(l=>{
+        const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0;
+        const desc=parseFloat(l.descuento)||0; const montoNeto=montoTot-desc;
+        const precFrac=cant!==0?montoNeto/cant:0;
+        return {compra_id:compId,articulo_id:l.articuloId,articulo_nombre:l.articuloNombre,
+          articulo_codigo:l.articuloCodigo,detalle:l.detalle||"",unidad_medida:l.unidadMedida||"Unidad",
+          cantidad:cant,precio_unitario:precFrac,precio_fraccion:precFrac,total:montoTot,descuento:desc};
+      }));
+      const stockLocal={}; const precioLocal={};
+      for(const l of lineas){
+        const artId=l.articuloId; if(!artId) continue;
+        const art=articulos.find(a=>a.id===artId); if(!art) continue;
+        const baseStock=stockLocal[artId]!==undefined?stockLocal[artId]:(art.stock||0);
+        const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0;
+        const desc=parseFloat(l.descuento)||0; const montoNeto=montoTot-desc;
+        const precFrac=cant!==0?montoNeto/cant:0;
+        stockLocal[artId]=baseStock+cant;
+        precioLocal[artId]={precio:precFrac,fecha:enc.fecha,proveedor:prov?.razonSocial||""};
+      }
+      for(const [artIdStr,nuevoStock] of Object.entries(stockLocal)){
+        const artId=+artIdStr; const info=precioLocal[artId];
+        await sb.from("articulos").eq("id",artId).update({stock:nuevoStock,precio:info.precio,ultima_fecha_compra:info.fecha,ultimo_proveedor_compra:info.proveedor});
+        setArticulos(p=>p.map(a=>a.id===artId?{...a,stock:nuevoStock,precio:info.precio,ultimaFechaCompra:info.fecha,ultimoProveedorCompra:info.proveedor}:a));
+      }
+      const lineasGuardadas=lineas.map(l=>{
+        const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0;
+        const desc=parseFloat(l.descuento)||0; const montoNeto=montoTot-desc;
+        const precFrac=cant!==0?montoNeto/cant:0;
+        return {articuloId:l.articuloId,articuloNombre:l.articuloNombre,articuloCodigo:l.articuloCodigo,
+          detalle:l.detalle||"",unidadMedida:l.unidadMedida||"Unidad",cantidad:cant,
+          precioUnitario:precFrac,precioFraccion:precFrac,total:montoTot,descuento:desc};
+      });
+      setCompras(p=>[...p,{id:compId,fecha:enc.fecha,proveedorId:+enc.proveedorId,proveedorNombre:prov?.razonSocial||"",tipoBoleta:enc.tipoBoleta,nroComprobante:enc.nroComprobante||"",totalDetalle:sub,totalImpuestos:totalImp,totalCompra:total,usuario:usuario.nombre,lineas:lineasGuardadas}]);
+      setOk(true); setTimeout(onVolver,1500);
+    }catch(e){setErr("Error al guardar: "+e.message);}
+    finally{setGuardando(false);}
+  };
+
+  return <CompraForm
+    titulo="🛒 NUEVA COMPRA"
+    encInit={{fecha:hoy(),proveedorId:"",tipoBoleta:"Factura B",nroComprobante:"",usuario:usuario.nombre}}
+    lineasInit={[{_k:1,articuloId:null,articuloNombre:"",articuloCodigo:"",detalle:"",cantidad:"",unidadMedida:"Unidad",montoTotal:"",descuento:""}]}
+    impuestosInit={[{_k:1,concepto:"",monto:""}]}
+    proveedores={proveedores} articulos={articulos}
+    onGuardar={guardar} onVolver={onVolver}
+    guardando={guardando} err={err} ok={ok}/>;
+}
+
+// ── EDITAR COMPRA EXISTENTE ───────────────────────────────────────────────────
+function EditarCompra({compraOriginal,proveedores,articulos,setArticulos,setCompras,usuario,onVolver}){
+  const [err,setErr]=useState(""); const [guardando,setGuardando]=useState(false); const [ok,setOk]=useState(false);
+
+  const guardar=async({enc,lineas,impuestos,sub,totalImp,total})=>{
+    if(!enc.proveedorId){setErr("Seleccione proveedor");return;}
+    if(!lineas.length){setErr("Agregue al menos un artículo");return;}
+    if(lineas.some(l=>!l.articuloId||parseFloat(l.cantidad)===0||isNaN(parseFloat(l.cantidad)))){
+      setErr("Complete artículo y cantidad en todas las líneas");return;}
+    setGuardando(true); setErr("");
+    try{
+      const prov=proveedores.find(p=>p.id===+enc.proveedorId);
+      // 1. Revertir stock viejo
+      const stockLocal={};
+      for(const l of compraOriginal.lineas){
+        if(!l.articuloId) continue;
+        const art=articulos.find(a=>a.id===l.articuloId); if(!art) continue;
+        const base=stockLocal[l.articuloId]!==undefined?stockLocal[l.articuloId]:(art.stock||0);
+        stockLocal[l.articuloId]=base-(parseFloat(l.cantidad)||0);
+      }
+      // 2. Aplicar stock nuevo
+      const precioLocal={};
+      for(const l of lineas){
+        if(!l.articuloId) continue;
+        const artActual=articulos.find(a=>a.id===l.articuloId);
+        const base=stockLocal[l.articuloId]!==undefined?stockLocal[l.articuloId]:(artActual?.stock||0);
+        const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0;
+        const desc=parseFloat(l.descuento)||0; const montoNeto=montoTot-desc;
+        const precFrac=cant!==0?montoNeto/cant:0;
+        stockLocal[l.articuloId]=base+cant;
+        precioLocal[l.articuloId]={precio:precFrac,fecha:enc.fecha,proveedor:prov?.razonSocial||""};
+      }
+      // 3. Actualizar stock en DB
+      for(const [artIdStr,nuevoStock] of Object.entries(stockLocal)){
+        const artId=+artIdStr; const info=precioLocal[artId];
+        if(info){
+          await sb.from("articulos").eq("id",artId).update({stock:nuevoStock,precio:info.precio,ultima_fecha_compra:info.fecha,ultimo_proveedor_compra:info.proveedor});
+          setArticulos(p=>p.map(a=>a.id===artId?{...a,stock:nuevoStock,precio:info.precio,ultimaFechaCompra:info.fecha,ultimoProveedorCompra:info.proveedor}:a));
+        }else{
+          await sb.from("articulos").eq("id",artId).update({stock:nuevoStock});
+          setArticulos(p=>p.map(a=>a.id===artId?{...a,stock:nuevoStock}:a));
+        }
+      }
+      // 4. Actualizar encabezado compra
+      await sb.from("compras").eq("id",compraOriginal.id).update({
+        fecha:enc.fecha,proveedor_id:+enc.proveedorId,proveedor_nombre:prov?.razonSocial||"",
+        tipo_boleta:enc.tipoBoleta,nro_comprobante:enc.nroComprobante||"",
+        total_detalle:sub,total_impuestos:totalImp,total_compra:total,usuario_nombre:usuario.nombre
+      });
+      // 5. Reemplazar detalle
+      await sb.from("compras_detalle").eq("compra_id",compraOriginal.id).delete();
+      await sb.from("compras_detalle").insert(lineas.map(l=>{
+        const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0;
+        const desc=parseFloat(l.descuento)||0; const montoNeto=montoTot-desc;
+        const precFrac=cant!==0?montoNeto/cant:0;
+        return {compra_id:compraOriginal.id,articulo_id:l.articuloId,articulo_nombre:l.articuloNombre,
+          articulo_codigo:l.articuloCodigo,detalle:l.detalle||"",unidad_medida:l.unidadMedida||"Unidad",
+          cantidad:cant,precio_unitario:precFrac,precio_fraccion:precFrac,total:montoTot,descuento:desc};
+      }));
+      // 6. Actualizar estado local
+      const lineasGuardadas=lineas.map(l=>{
+        const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0;
+        const desc=parseFloat(l.descuento)||0; const montoNeto=montoTot-desc;
+        const precFrac=cant!==0?montoNeto/cant:0;
+        return {articuloId:l.articuloId,articuloNombre:l.articuloNombre,articuloCodigo:l.articuloCodigo,
+          detalle:l.detalle||"",unidadMedida:l.unidadMedida||"Unidad",cantidad:cant,
+          precioUnitario:precFrac,precioFraccion:precFrac,total:montoTot,descuento:desc};
+      });
+      setCompras(p=>p.map(c=>c.id===compraOriginal.id?{
+        ...c,fecha:enc.fecha,proveedorId:+enc.proveedorId,proveedorNombre:prov?.razonSocial||"",
+        tipoBoleta:enc.tipoBoleta,nroComprobante:enc.nroComprobante||"",
+        totalDetalle:sub,totalImpuestos:totalImp,totalCompra:total,lineas:lineasGuardadas
+      }:c));
+      setOk(true); setTimeout(onVolver,1500);
+    }catch(e){setErr("Error al guardar: "+e.message);}
+    finally{setGuardando(false);}
+  };
+
+  return <CompraForm
+    titulo={`✏️ EDITAR COMPRA #${compraOriginal.id}`}
+    encInit={{fecha:compraOriginal.fecha,proveedorId:String(compraOriginal.proveedorId),tipoBoleta:compraOriginal.tipoBoleta,nroComprobante:compraOriginal.nroComprobante||"",usuario:usuario.nombre}}
+    lineasInit={compraOriginal.lineas.map((l,i)=>({
+      _k:i+1,articuloId:l.articuloId,articuloNombre:l.articuloNombre,articuloCodigo:l.articuloCodigo,
+      detalle:l.detalle||"",cantidad:l.cantidad,unidadMedida:l.unidadMedida||"Unidad",
+      montoTotal:l.total,descuento:l.descuento||0
+    }))}
+    impuestosInit={[{_k:1,concepto:"Impuestos anteriores",monto:String(compraOriginal.totalImpuestos||"")}]}
+    proveedores={proveedores} articulos={articulos}
+    onGuardar={guardar} onVolver={onVolver}
+    guardando={guardando} err={err} ok={ok}/>;
+}
+
+
+function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,pagosProveedores}){
   const [vista,setVista]=useState("lista");
   const [sel,setSel]=useState(null);
   const [buscar,setBuscar]=useState("");
@@ -1214,6 +1424,7 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario}
   const [provFiltro,setProvFiltro]=useState("");
 
   if(vista==="nueva")return <NuevaCompra proveedores={proveedores} articulos={articulos} setArticulos={setArticulos} compras={compras} setCompras={setCompras} usuario={usuario} onVolver={()=>setVista("lista")}/>;
+  if(vista==="editar"&&sel)return <EditarCompra compraOriginal={sel} proveedores={proveedores} articulos={articulos} setArticulos={setArticulos} setCompras={setCompras} usuario={usuario} onVolver={()=>{setVista("lista");setSel(null);}}/>;
   if(vista==="det"&&sel){
     const c=sel;
     return(
@@ -1223,13 +1434,13 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario}
           <h2 style={{color:"#1A3A5C",fontSize:17}}>🛒 COMPRA #{c.id}</h2>
         </div>
         <div className="sec"><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:10}}>
-          {[["N° INTERNO",`#${c.id}`],["NRO. COMPROBANTE",c.nroComprobante||"—"],["FECHA",c.fecha],["PROVEEDOR",c.proveedorNombre],["TIPO",c.tipoBoleta],["USUARIO",c.usuario]].map(([k,v])=>(
+          {[["N° INTERNO",`#${c.id}`],["NRO. COMPROBANTE",c.nroComprobante||"—"],["FECHA",fmtFechaCorta(c.fecha)],["PROVEEDOR",c.proveedorNombre],["TIPO",c.tipoBoleta],["USUARIO",c.usuario]].map(([k,v])=>(
             <div key={k}><div style={{fontSize:10,color:"#94A3B8",fontWeight:700}}>{k}</div><div style={{fontWeight:700}}>{v}</div></div>
           ))}
         </div></div>
         <div style={{background:"#fff",borderRadius:8,overflow:"auto",marginBottom:12,boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}>
-          <table><thead><tr><th>ARTÍCULO</th><th>DETALLE/MARCA</th><th>CANT.</th><th>UNIDAD</th><th style={{textAlign:"right"}}>MONTO TOTAL $</th><th style={{textAlign:"right"}}>PRECIO FRACC. $</th></tr></thead>
-            <tbody>{c.lineas.map((l,i)=><tr key={i}><td><b>{l.articuloCodigo}</b> {l.articuloNombre}</td><td style={{fontSize:12,color:"#5D6D7E"}}>{l.detalle||<span style={{color:"#BDC3C7"}}>—</span>}</td><td>{l.cantidad}</td><td style={{fontSize:12,color:"#7F8C8D"}}>{l.unidadMedida||"—"}</td><td style={{textAlign:"right",fontWeight:700}}>$ {fmtP(l.total)}</td><td style={{textAlign:"right",fontWeight:700,color:"#0891B2"}}>$ {fmtP(l.precioFraccion||l.precioUnitario)}</td></tr>)}</tbody>
+          <table><thead><tr><th>ARTÍCULO</th><th>DETALLE/MARCA</th><th>CANT.</th><th>UNIDAD</th><th style={{textAlign:"right"}}>MONTO TOTAL $</th><th style={{textAlign:"right",color:"#FCA5A5"}}>DESC. $</th><th style={{textAlign:"right"}}>PRECIO FRACC. $</th></tr></thead>
+            <tbody>{c.lineas.map((l,i)=><tr key={i}><td><b>{l.articuloCodigo}</b> {l.articuloNombre}</td><td style={{fontSize:12,color:"#5D6D7E"}}>{l.detalle||<span style={{color:"#BDC3C7"}}>—</span>}</td><td>{l.cantidad}</td><td style={{fontSize:12,color:"#7F8C8D"}}>{l.unidadMedida||"—"}</td><td style={{textAlign:"right",fontWeight:700}}>$ {fmtP(l.total)}</td><td style={{textAlign:"right",color:"#C0392B"}}>{l.descuento>0?"$ "+fmtP(l.descuento):<span style={{color:"#BDC3C7"}}>—</span>}</td><td style={{textAlign:"right",fontWeight:700,color:"#0891B2"}}>$ {fmtP(l.precioFraccion||l.precioUnitario)}</td></tr>)}</tbody>
           </table>
         </div>
         <div className="sec"><div style={{display:"flex",flexDirection:"column",gap:8,maxWidth:280,marginLeft:"auto"}}>
@@ -1240,6 +1451,27 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario}
       </div>
     );
   }
+
+  const eliminarCompra=async(c)=>{
+    if(!window.confirm(`¿Eliminar compra #${c.id}?\nProveedor: ${c.proveedorNombre}\nTotal: $${fmtP(c.totalCompra)}\n\nEsto revertirá el stock de todos los artículos.`)) return;
+    try{
+      const stockLocal={};
+      for(const l of c.lineas){
+        if(!l.articuloId) continue;
+        const art=articulos.find(a=>a.id===l.articuloId); if(!art) continue;
+        const base=stockLocal[l.articuloId]!==undefined?stockLocal[l.articuloId]:(art.stock||0);
+        stockLocal[l.articuloId]=base-(parseFloat(l.cantidad)||0);
+      }
+      for(const [artIdStr,nuevoStock] of Object.entries(stockLocal)){
+        const artId=+artIdStr;
+        await sb.from("articulos").eq("id",artId).update({stock:nuevoStock});
+        setArticulos(p=>p.map(a=>a.id===artId?{...a,stock:nuevoStock}:a));
+      }
+      await sb.from("compras_detalle").eq("compra_id",c.id).delete();
+      await sb.from("compras").eq("id",c.id).delete();
+      setCompras(p=>p.filter(x=>x.id!==c.id));
+    }catch(e){alert("Error al eliminar: "+e.message);}
+  };
 
   const filtradas=compras.filter(c=>{
     const txtOk=c.proveedorNombre.toLowerCase().includes(buscar.toLowerCase())||String(c.id).includes(buscar)||c.tipoBoleta.toLowerCase().includes(buscar.toLowerCase());
@@ -1322,15 +1554,32 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario}
         <button className="btn btn-naranja" onClick={()=>setVista("nueva")}>+ NUEVA COMPRA</button>
       </div>
       <div style={{background:"#fff",borderRadius:8,overflow:"auto",boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}>
-        <table><thead><tr><th>ID</th><th>NRO. COMPROBANTE</th><th>FECHA</th><th>PROVEEDOR</th><th>TIPO</th><th>TOTAL $</th><th>USUARIO</th><th></th></tr></thead>
+        <table><thead><tr><th>ID</th><th>NRO. COMPROBANTE</th><th style={{whiteSpace:"nowrap"}}>FECHA</th><th>PROVEEDOR</th><th>TIPO</th><th>TOTAL $</th><th>USUARIO</th><th></th></tr></thead>
           <tbody>
             {filtradas.map(c=>(
               <tr key={c.id}>
-                <td><b>#{c.id}</b></td><td>{c.nroComprobante||<span style={{color:"#94A3B8"}}>—</span>}</td><td>{c.fecha}</td><td>{c.proveedorNombre}</td>
-                <td><span className="badge" style={{background:"#2563A8",color:"#fff"}}>{c.tipoBoleta}</span></td>
-                <td style={{fontWeight:700,color:"#E8620A"}}>$ {fmtP(c.totalCompra)}</td>
-                <td style={{fontSize:11,color:"#94A3B8"}}>{c.usuario}</td>
-                <td><button className="btn btn-outline" onClick={()=>{setSel(c);setVista("det");}} style={{fontSize:11,padding:"4px 10px"}}>👁️ VER</button></td>
+                <td><b>#{c.id}</b></td>
+                <td style={{fontSize:11}}>{c.nroComprobante||<span style={{color:"#94A3B8"}}>—</span>}</td>
+                <td style={{fontSize:11,whiteSpace:"nowrap"}}>{fmtFechaCorta(c.fecha)}</td>
+                <td>{c.proveedorNombre}</td>
+                <td><span className="badge" style={{background:"#2563A8",color:"#fff",fontSize:10}}>{c.tipoBoleta}</span></td>
+                <td style={{fontWeight:700,color:"#E8620A"}}>
+                  $ {fmtP(c.totalCompra)}
+                  {(()=>{
+                    const pags=(pagosProveedores||[]).filter(p=>p.compraId===c.id);
+                    const totalPag=Math.round(pags.reduce((s,p)=>s+p.monto,0)*100)/100;
+                    const pend=Math.round((c.totalCompra-totalPag)*100)/100;
+                    if(pend<=0) return <span className="badge" style={{background:"#16A34A",color:"#fff",fontSize:9,marginLeft:4}}>✓ SALDADA</span>;
+                    if(totalPag>0) return <span className="badge" style={{background:"#E8620A",color:"#fff",fontSize:9,marginLeft:4}}>PARCIAL</span>;
+                    return null;
+                  })()}
+                </td>
+                <td style={{fontSize:10,color:"#94A3B8"}}>{c.usuario}</td>
+                <td style={{whiteSpace:"nowrap"}}>
+                  <button className="btn btn-outline" onClick={()=>{setSel(c);setVista("det");}} style={{fontSize:10,padding:"3px 7px",marginRight:3}}>👁️</button>
+                  <button className="btn btn-primary" onClick={()=>{setSel(c);setVista("editar");}} style={{fontSize:10,padding:"3px 7px",marginRight:3}}>✏️</button>
+                  <button className="btn btn-danger" onClick={()=>eliminarCompra(c)} style={{fontSize:10,padding:"3px 7px"}}>🗑️</button>
+                </td>
               </tr>
             ))}
             {!filtradas.length&&<tr><td colSpan={8} style={{textAlign:"center",color:"#94A3B8",padding:20}}>Sin compras para los filtros seleccionados</td></tr>}
@@ -1374,6 +1623,7 @@ function NuevaVenta({clientes,articulos,setArticulos,ventas,setVentas,usuario,on
       const vtaId=vtaData[0].id;
       await sb.from("ventas_detalle").insert(lineas.map(l=>({
         venta_id:vtaId,articulo_id:l.articuloId,articulo_nombre:l.articuloNombre,articulo_codigo:l.articuloCodigo,
+        unidad_medida:l.unidadMedida||'Unidad',
         cantidad:+l.cantidad,precio_costo:l.precioCosto,rentabilidad:l.rentabilidad,
         precio_unitario:+l.precioUnitario,subtotal:(+l.cantidad)*(+l.precioUnitario)
       })));
@@ -1429,7 +1679,7 @@ function NuevaVenta({clientes,articulos,setArticulos,ventas,setVentas,usuario,on
         </div>
         <div style={{overflowX:"auto"}}>
           <table>
-            <thead><tr><th>ARTÍCULO</th><th>CANT.</th><th>PRECIO UNIT. $</th><th>SUBTOTAL $</th><th></th></tr></thead>
+            <thead><tr><th>ARTÍCULO</th><th>UNIDAD</th><th>CANT.</th><th>PRECIO UNIT. $</th><th>SUBTOTAL $</th><th></th></tr></thead>
             <tbody>
               {lineas.map((l,i)=><LineaConRef key={l._k} linea={l} articulos={articulos} setArticulos={setArticulos} onChange={d=>mod(i,d)} onDelete={()=>del(i)} mostrarSugerido={true}/>)}
               {!lineas.length&&<tr><td colSpan={5} style={{textAlign:"center",color:"#94A3B8",padding:14}}>Sin líneas</td></tr>}
@@ -1492,9 +1742,9 @@ function Ventas({clientes,articulos,setArticulos,ventas,setVentas,usuario}){
           ))}
         </div></div>
         <div style={{background:"#fff",borderRadius:8,overflow:"auto",marginBottom:12,boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}>
-          <table><thead><tr><th>ARTÍCULO</th><th>CANT.</th><th>COSTO $</th><th>P.UNIT $</th><th>SUBTOTAL $</th><th>GANANCIA $</th></tr></thead>
+          <table><thead><tr><th>ARTÍCULO</th><th>UNIDAD</th><th>CANT.</th><th>COSTO $</th><th>P.UNIT $</th><th>SUBTOTAL $</th><th>GANANCIA $</th></tr></thead>
             <tbody>{v.lineas.map((l,i)=>{const g=l.subtotal-(l.cantidad||0)*(l.precioCosto||0);return(
-              <tr key={i}><td><b>{l.articuloCodigo}</b> {l.articuloNombre}</td><td>{l.cantidad}</td><td style={{color:"#94A3B8"}}>$ {fmtP(l.precioCosto)}</td><td>$ {fmtP(l.precioUnitario)}</td><td style={{fontWeight:700}}>$ {fmtP(l.subtotal)}</td><td style={{fontWeight:700,color:"#16A34A"}}>$ {fmtP(g)}</td></tr>
+              <tr key={i}><td><b>{l.articuloCodigo}</b> {l.articuloNombre}</td><td style={{fontSize:11,color:"#7F8C8D"}}>{l.unidadMedida||"—"}</td><td>{l.cantidad}</td><td style={{color:"#94A3B8"}}>$ {fmtP(l.precioCosto)}</td><td>$ {fmtP(l.precioUnitario)}</td><td style={{fontWeight:700}}>$ {fmtP(l.subtotal)}</td><td style={{fontWeight:700,color:"#16A34A"}}>$ {fmtP(g)}</td></tr>
             );})}</tbody>
           </table>
         </div>
@@ -2078,6 +2328,543 @@ function LibroMovimientos({compras,ventas,articulos}){
   );
 }
 
+
+// ── CUENTA CORRIENTE ─────────────────────────────────────────────────────────
+function CuentaCorriente({clientes,proveedores,ventas,compras,pagosClientes,setPagosClientes,pagosProveedores,setPagosProveedores,usuario}){
+  const [tab,setTab]=useState("clientes");
+  const [subTab,setSubTab]=useState("ledger"); // "ledger" | "boletas" | "informes"
+  const [selEntidad,setSelEntidad]=useState(null);
+  const [modalPago,setModalPago]=useState(false);
+  const [formPago,setFormPago]=useState({});
+  const [montoInput,setMontoInput]=useState(""); // controlled separately for real-time preview
+  const [err,setErr]=useState("");
+  const [guardando,setGuardando]=useState(false);
+  const [buscar,setBuscar]=useState("");
+
+  // ── Saldos por entidad ────────────────────────
+  const balancesClientes=clientes.map(c=>{
+    const totalVentas=ventas.filter(v=>v.clienteId===c.id).reduce((s,v)=>s+v.totalVenta,0);
+    const totalCobros=pagosClientes.filter(p=>p.clienteId===c.id).reduce((s,p)=>s+p.monto,0);
+    return {...c,totalVentas,totalCobros,saldo:totalVentas-totalCobros};
+  }).filter(c=>c.totalVentas>0||c.totalCobros>0);
+
+  const balancesProveedores=proveedores.map(p=>{
+    const totalCompras=compras.filter(c=>c.proveedorId===p.id).reduce((s,c)=>s+c.totalCompra,0);
+    const totalPagos=pagosProveedores.filter(pg=>pg.proveedorId===p.id).reduce((s,pg)=>s+pg.monto,0);
+    return {...p,totalCompras,totalPagos,saldo:totalCompras-totalPagos};
+  }).filter(p=>p.totalCompras>0||p.totalPagos>0);
+
+  const totalACobrar=balancesClientes.reduce((s,c)=>s+Math.max(0,c.saldo),0);
+  const totalAPagar=balancesProveedores.reduce((s,p)=>s+Math.max(0,p.saldo),0);
+
+  // ── Libro mayor de la entidad seleccionada ────
+  const r2=(n)=>Math.round(n*100)/100;
+  const calcEstadoDoc=(totalDoc,pagosDoc)=>{
+    const totalPag=r2(pagosDoc.reduce((s,p)=>s+p.monto,0));
+    const pend=r2(totalDoc-totalPag);
+    return {totalPagado:totalPag,pendiente:pend,estado:pend<=0?"SALDADO":totalPag>0?"PARCIAL":"PENDIENTE"};
+  };
+  const getLedger=()=>{
+    if(!selEntidad) return [];
+    const movs=[];
+    if(tab==="clientes"){
+      ventas.filter(v=>v.clienteId===selEntidad.id).forEach(v=>{
+        const pagsDoc=pagosClientes.filter(p=>p.clienteId===selEntidad.id&&p.ventaId===v.id);
+        const {totalPagado,pendiente,estado}=calcEstadoDoc(v.totalVenta,pagsDoc);
+        movs.push({fecha:v.fecha,tipo:"VENTA",ref:`Vta #${v.id}${v.nroComprobante?" · "+v.nroComprobante:""}`,debe:v.totalVenta,haber:0,detalle:"",usuario:v.usuario,uid:"v"+v.id,estadoDoc:estado,totalDoc:v.totalVenta,totalPagado,pendiente});
+      });
+      pagosClientes.filter(p=>p.clienteId===selEntidad.id).forEach(p=>{
+        const vtaRef=p.ventaId?ventas.find(v=>v.id===p.ventaId):null;
+        const refDoc=p.ventaId?` → ${vtaRef?.nroComprobante?vtaRef.nroComprobante+' (Vta #'+p.ventaId+')':`Vta #${p.ventaId}`}`:"";
+        movs.push({fecha:p.fecha,tipo:"COBRO",ref:p.concepto||`Cobro #${p.id}`,debe:0,haber:p.monto,detalle:p.medioPago+(p.detallePago?" · "+p.detallePago:"")+refDoc,usuario:p.usuario,uid:"p"+p.id,pagoId:p.id});
+      });
+    }else{
+      compras.filter(c=>c.proveedorId===selEntidad.id).forEach(c=>{
+        const pagsDoc=pagosProveedores.filter(p=>p.proveedorId===selEntidad.id&&p.compraId===c.id);
+        const {totalPagado,pendiente,estado}=calcEstadoDoc(c.totalCompra,pagsDoc);
+        movs.push({fecha:c.fecha,tipo:"COMPRA",ref:`Comp #${c.id}${c.nroComprobante?" · "+c.nroComprobante:""}`,debe:c.totalCompra,haber:0,detalle:"",usuario:c.usuario,uid:"c"+c.id,estadoDoc:estado,totalDoc:c.totalCompra,totalPagado,pendiente});
+      });
+      pagosProveedores.filter(p=>p.proveedorId===selEntidad.id).forEach(p=>{
+        const compRef=p.compraId?compras.find(c=>c.id===p.compraId):null;
+        const refDoc=p.compraId?` → ${compRef?.nroComprobante?compRef.nroComprobante+' (Comp #'+p.compraId+')':`Comp #${p.compraId}`}`:"";
+        movs.push({fecha:p.fecha,tipo:"PAGO",ref:p.concepto||`Pago #${p.id}`,debe:0,haber:p.monto,detalle:p.medioPago+(p.detallePago?" · "+p.detallePago:"")+refDoc,usuario:p.usuario,uid:"p"+p.id,pagoId:p.id});
+      });
+    }
+    movs.sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.uid.localeCompare(b.uid));
+    let saldo=0;
+    return movs.map(m=>{saldo+=m.debe-m.haber;return{...m,saldo};});
+  };
+  const ledger=getLedger();
+  const saldoActual=ledger.length>0?ledger[ledger.length-1].saldo:0;
+
+  // ── Registrar cobro/pago ──────────────────────
+  const abrirPago=()=>{
+    setFormPago({fecha:hoy(),medioPago:"EFECTIVO",detallePago:"",concepto:"",referenciaId:""});
+    setMontoInput(""); setErr(""); setModalPago(true);
+  };
+
+  const guardarPago=async()=>{
+    const monto=parseFloat(montoInput)||0;
+    if(!monto||monto<=0){setErr("Ingresá un monto válido");return;}
+    setGuardando(true); setErr("");
+    try{
+      if(tab==="clientes"){
+        const reg={fecha:formPago.fecha,cliente_id:selEntidad.id,cliente_nombre:selEntidad.razonSocial,monto,medio_pago:formPago.medioPago,detalle_pago:formPago.detallePago||"",concepto:formPago.concepto||"",venta_id:formPago.referenciaId?+formPago.referenciaId:null,usuario_nombre:usuario.nombre};
+        const {data}=await sb.from("pagos_clientes").insert(reg);
+        setPagosClientes(p=>[...p,mapPagoCli(data[0])]);
+      }else{
+        const reg={fecha:formPago.fecha,proveedor_id:selEntidad.id,proveedor_nombre:selEntidad.razonSocial,monto,medio_pago:formPago.medioPago,detalle_pago:formPago.detallePago||"",concepto:formPago.concepto||"",compra_id:formPago.referenciaId?+formPago.referenciaId:null,usuario_nombre:usuario.nombre};
+        const {data}=await sb.from("pagos_proveedores").insert(reg);
+        setPagosProveedores(p=>[...p,mapPagoProv(data[0])]);
+      }
+      setModalPago(false);
+    }catch(e){setErr("Error: "+e.message);}
+    finally{setGuardando(false);}
+  };
+
+  const eliminarPago=async(pagoId)=>{
+    if(!window.confirm("¿Eliminar este registro de pago/cobro?")) return;
+    try{
+      if(tab==="clientes"){
+        await sb.from("pagos_clientes").eq("id",pagoId).delete();
+        setPagosClientes(p=>p.filter(x=>x.id!==pagoId));
+      }else{
+        await sb.from("pagos_proveedores").eq("id",pagoId).delete();
+        setPagosProveedores(p=>p.filter(x=>x.id!==pagoId));
+      }
+    }catch(e){alert("Error: "+e.message);}
+  };
+
+  const ventasEntidad=selEntidad&&tab==="clientes"
+    ?ventas.filter(v=>v.clienteId===selEntidad.id).filter(v=>{
+        const pagsDoc=pagosClientes.filter(p=>p.clienteId===selEntidad.id&&p.ventaId===v.id);
+        return Math.round((v.totalVenta-pagsDoc.reduce((s,p)=>s+p.monto,0))*100)/100>0;
+      })
+    :[];
+  const comprasEntidad=selEntidad&&tab==="proveedores"
+    ?compras.filter(c=>c.proveedorId===selEntidad.id).filter(c=>{
+        const pagsDoc=pagosProveedores.filter(p=>p.proveedorId===selEntidad.id&&p.compraId===c.id);
+        return Math.round((c.totalCompra-pagsDoc.reduce((s,p)=>s+p.monto,0))*100)/100>0;
+      })
+    :[];
+  const esCliente=tab==="clientes";
+  const colorTab=esCliente?"#16A34A":"#E8620A";
+
+  // ── Vista detalle de entidad ──────────────────
+  if(selEntidad){
+    const totalDebe=ledger.reduce((s,m)=>s+m.debe,0);
+    const totalHaber=ledger.reduce((s,m)=>s+m.haber,0);
+    return(
+      <div>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+          <button className="btn btn-outline" onClick={()=>setSelEntidad(null)} style={{fontSize:12}}>← VOLVER</button>
+          <h2 style={{color:"#1A3A5C",fontSize:17,borderBottom:`3px solid ${colorTab}`,paddingBottom:4}}>
+            {esCliente?"👥":"🏭"} {selEntidad.razonSocial}
+          </h2>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:10,marginBottom:14}}>
+          {[
+            {l:esCliente?"Total Facturado":"Total Comprado",v:"$ "+fmtP(totalDebe),c:"#1A3A5C",i:"📄"},
+            {l:esCliente?"Total Cobrado":"Total Pagado",v:"$ "+fmtP(totalHaber),c:"#16A34A",i:esCliente?"💰":"💸"},
+            {l:esCliente?"Saldo Deudor":"Saldo Adeudado",v:"$ "+fmtP(saldoActual),c:saldoActual>0?"#DC2626":saldoActual<0?"#16A34A":"#94A3B8",i:saldoActual>0?"⚠️":saldoActual<0?"✅":"—"},
+          ].map(c=>(
+            <div key={c.l} style={{background:"#fff",borderRadius:8,padding:"12px 14px",boxShadow:"0 2px 8px rgba(0,0,0,0.07)",borderLeft:`4px solid ${c.c}`}}>
+              <div style={{fontSize:18}}>{c.i}</div>
+              <div style={{fontSize:15,fontWeight:700,color:c.c,marginTop:3}}>{c.v}</div>
+              <div style={{fontSize:10,color:"#94A3B8",fontWeight:700}}>{c.l}</div>
+            </div>
+          ))}
+        </div>
+        {/* Sub-tabs */}
+        <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
+          {[["ledger","📋 LIBRO MAYOR"],["boletas",esCliente?"🧾 POR VENTA":"🧾 POR COMPRA"],["informes","📊 INFORMES"]].map(([id,label])=>(
+            <button key={id} onClick={()=>setSubTab(id)} className="btn" style={{fontSize:12,padding:"7px 16px",background:subTab===id?colorTab:"#fff",color:subTab===id?"#fff":colorTab,border:`2px solid ${colorTab}`}}>{label}</button>
+          ))}
+          <button className="btn" style={{background:colorTab,color:"#fff",padding:"7px 16px",fontSize:12,marginLeft:"auto"}} onClick={abrirPago}>
+            {esCliente?"💰 REGISTRAR COBRO":"💸 REGISTRAR PAGO"}
+          </button>
+        </div>
+
+        {/* ── LIBRO MAYOR ── */}
+        {subTab==="ledger"&&(
+          <div style={{background:"#fff",borderRadius:8,overflow:"auto",boxShadow:"0 2px 8px rgba(0,0,0,0.08)",marginBottom:14}}>
+            <table>
+              <thead><tr>
+                <th style={{whiteSpace:"nowrap"}}>FECHA</th><th>TIPO</th><th>REFERENCIA</th>
+                <th>MEDIO / DETALLE</th>
+                <th style={{textAlign:"right"}}>DEBE $</th><th style={{textAlign:"right"}}>HABER $</th>
+                <th style={{textAlign:"right"}}>SALDO $</th><th>USUARIO</th><th></th>
+              </tr></thead>
+              <tbody>
+                {ledger.map((m,i)=>(
+                  <tr key={i} style={{background:m.tipo==="COBRO"||m.tipo==="PAGO"?"rgba(22,163,74,0.05)":"rgba(26,111,168,0.03)"}}>
+                    <td style={{fontSize:11,whiteSpace:"nowrap"}}>{fmtFechaCorta(m.fecha)}</td>
+                    <td>
+                      <span className="badge" style={{fontSize:10,background:m.tipo==="VENTA"?"#16A34A":m.tipo==="COMPRA"?"#E8620A":m.tipo==="COBRO"?"#0891B2":"#7C3AED",color:"#fff"}}>{m.tipo}</span>
+                      {m.estadoDoc&&<span className="badge" style={{fontSize:9,marginLeft:3,background:m.estadoDoc==="SALDADO"?"#16A34A":m.estadoDoc==="PARCIAL"?"#E8620A":"#DC2626",color:"#fff"}}>{m.estadoDoc}</span>}
+                    </td>
+                    <td style={{fontSize:12,color:"#1A5276",fontWeight:600}}>
+                      {m.ref}
+                      {m.estadoDoc&&m.estadoDoc!=="SALDADO"&&<div style={{fontSize:10,color:"#94A3B8"}}>Pagado: $ {fmtP(m.totalPagado)} · Pendiente: <span style={{color:"#DC2626",fontWeight:700}}>$ {fmtP(m.pendiente)}</span></div>}
+                    </td>
+                    <td style={{fontSize:12,color:"#5D6D7E"}}>{m.detalle||<span style={{color:"#BDC3C7"}}>—</span>}</td>
+                    <td style={{textAlign:"right",fontWeight:700,color:m.debe>0?"#1A3A5C":"#BDC3C7"}}>{m.debe>0?"$ "+fmtP(m.debe):"—"}</td>
+                    <td style={{textAlign:"right",fontWeight:700,color:m.haber>0?"#16A34A":"#BDC3C7"}}>{m.haber>0?"$ "+fmtP(m.haber):"—"}</td>
+                    <td style={{textAlign:"right",fontWeight:700,color:m.saldo>0?"#DC2626":m.saldo<0?"#16A34A":"#94A3B8"}}>$ {fmtP(m.saldo)}</td>
+                    <td style={{fontSize:10,color:"#94A3B8"}}>{m.usuario}</td>
+                    <td>{m.pagoId&&<button className="btn btn-danger" onClick={()=>eliminarPago(m.pagoId)} style={{fontSize:10,padding:"2px 6px"}}>🗑️</button>}</td>
+                  </tr>
+                ))}
+                {!ledger.length&&<tr><td colSpan={9} style={{textAlign:"center",color:"#94A3B8",padding:24}}>Sin movimientos registrados</td></tr>}
+              </tbody>
+              {ledger.length>0&&(<tfoot><tr style={{background:"#F8FAFC",fontWeight:700}}>
+                <td colSpan={4} style={{padding:"9px 14px",color:"#1A3A5C"}}>TOTALES</td>
+                <td style={{textAlign:"right",padding:"9px 14px",color:"#1A3A5C"}}>$ {fmtP(totalDebe)}</td>
+                <td style={{textAlign:"right",padding:"9px 14px",color:"#16A34A"}}>$ {fmtP(totalHaber)}</td>
+                <td style={{textAlign:"right",padding:"9px 14px",fontSize:15,color:saldoActual>0?"#DC2626":saldoActual<0?"#16A34A":"#94A3B8"}}>$ {fmtP(saldoActual)}</td>
+                <td colSpan={2}></td>
+              </tr></tfoot>)}
+            </table>
+          </div>
+        )}
+
+        {/* ── POR BOLETA / COMPROBANTE ── */}
+        {subTab==="boletas"&&(()=>{
+          const docs = esCliente ? ventasEntidad : comprasEntidad;
+          const pagosEntidad = esCliente
+            ? pagosClientes.filter(p=>p.clienteId===selEntidad.id)
+            : pagosProveedores.filter(p=>p.proveedorId===selEntidad.id);
+          const pagosLibres = pagosEntidad.filter(p=>!(esCliente?p.ventaId:p.compraId));
+          const totalPagosLibres = pagosLibres.reduce((s,p)=>s+p.monto,0);
+          return(
+            <div style={{marginBottom:14}}>
+              <div style={{background:"#fff",borderRadius:8,overflow:"auto",boxShadow:"0 2px 8px rgba(0,0,0,0.08)",marginBottom:10}}>
+                <table>
+                  <thead><tr>
+                    <th style={{whiteSpace:"nowrap"}}>FECHA</th>
+                    <th>{esCliente?"N° VENTA":"N° COMPRA"}</th>
+                    <th>COMPROBANTE</th>
+                    <th style={{textAlign:"right"}}>TOTAL $</th>
+                    <th style={{textAlign:"right"}}>PAGADO $</th>
+                    <th style={{textAlign:"right"}}>PENDIENTE $</th>
+                    <th style={{textAlign:"center"}}>ESTADO</th>
+                  </tr></thead>
+                  <tbody>
+                    {docs.sort((a,b)=>(a.fecha||"").localeCompare(b.fecha||"")).map(doc=>{
+                      const totalDoc=esCliente?(doc.totalVenta||0):(doc.totalCompra||0);
+                      const pagosDoc=pagosEntidad.filter(p=>(esCliente?p.ventaId:p.compraId)===doc.id);
+                      const totalPagado=pagosDoc.reduce((s,p)=>s+p.monto,0);
+                      const pendiente=Math.round((totalDoc-totalPagado)*100)/100;
+                      const pct=totalDoc>0?Math.min(100,totalPagado/totalDoc*100):0;
+                      const estado=pendiente<=0?"SALDADO":totalPagado>0?"PARCIAL":"PENDIENTE";
+                      const estadoColor=estado==="SALDADO"?"#16A34A":estado==="PARCIAL"?"#E8620A":"#DC2626";
+                      return(
+                        <tr key={doc.id} style={{background:estado==="SALDADO"?"rgba(22,163,74,0.04)":estado==="PARCIAL"?"rgba(232,98,10,0.04)":"rgba(220,38,38,0.04)"}}>
+                          <td style={{fontSize:11,whiteSpace:"nowrap"}}>{fmtFechaCorta(doc.fecha)}</td>
+                          <td style={{fontWeight:700,color:"#1A5276"}}>#{doc.id}</td>
+                          <td style={{fontSize:12}}>{doc.nroComprobante||<span style={{color:"#BDC3C7"}}>—</span>}</td>
+                          <td style={{textAlign:"right",fontWeight:700}}>$ {fmtP(totalDoc)}</td>
+                          <td style={{textAlign:"right",fontWeight:700,color:"#16A34A"}}>
+                            $ {fmtP(totalPagado)}
+                            {pagosDoc.length>0&&<div style={{fontSize:9,color:"#94A3B8"}}>{pagosDoc.length} pago{pagosDoc.length!==1?"s":""}</div>}
+                          </td>
+                          <td style={{textAlign:"right",fontWeight:700,color:pendiente>0?"#DC2626":"#16A34A"}}>
+                            {pendiente>0?"$ "+fmtP(pendiente):<span style={{color:"#16A34A"}}>✓ Saldado</span>}
+                          </td>
+                          <td style={{textAlign:"center"}}>
+                            <div>
+                              <span className="badge" style={{background:estadoColor,color:"#fff",fontSize:10}}>{estado}</span>
+                              {totalDoc>0&&<div style={{marginTop:4,height:4,background:"#E2E8F0",borderRadius:4,overflow:"hidden",width:60,margin:"4px auto 0"}}>
+                                <div style={{width:pct+"%",height:"100%",background:estadoColor,borderRadius:4,transition:"width 0.3s"}}/>
+                              </div>}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {!docs.length&&<tr><td colSpan={7} style={{textAlign:"center",color:"#94A3B8",padding:24}}>Sin comprobantes</td></tr>}
+                  </tbody>
+                  {docs.length>0&&(<tfoot>
+                    <tr style={{background:"#F8FAFC",fontWeight:700}}>
+                      <td colSpan={3} style={{padding:"9px 14px"}}>TOTAL COMPROBANTES</td>
+                      <td style={{textAlign:"right",padding:"9px 14px"}}>$ {fmtP(docs.reduce((s,d)=>s+(esCliente?(d.totalVenta||0):(d.totalCompra||0)),0))}</td>
+                      <td style={{textAlign:"right",padding:"9px 14px",color:"#16A34A"}}>$ {fmtP(pagosEntidad.filter(p=>(esCliente?p.ventaId:p.compraId)).reduce((s,p)=>s+p.monto,0))}</td>
+                      <td colSpan={2} style={{padding:"9px 14px",fontSize:11,color:"#94A3B8"}}>
+                        {totalPagosLibres>0&&`+ $ ${fmtP(totalPagosLibres)} sin asignar a comprobante`}
+                      </td>
+                    </tr>
+                  </tfoot>)}
+                </table>
+              </div>
+              {totalPagosLibres>0&&(
+                <div style={{padding:"10px 14px",background:"#FFF7ED",borderRadius:6,borderLeft:"3px solid #E8620A",fontSize:12,color:"#92400E"}}>
+                  ⚠️ <strong>$ {fmtP(totalPagosLibres)}</strong> en pagos no asignados a un comprobante específico (aparecen en el libro mayor pero no en esta vista).
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* ── INFORMES ── */}
+        {subTab==="informes"&&(()=>{
+          const pagosEntidad = esCliente
+            ? pagosClientes.filter(p=>p.clienteId===selEntidad.id)
+            : pagosProveedores.filter(p=>p.proveedorId===selEntidad.id);
+          const porMedio={};
+          pagosEntidad.forEach(p=>{porMedio[p.medioPago]=(porMedio[p.medioPago]||0)+p.monto;});
+          const exportarInforme=async()=>{
+            const XLSX=await new Promise((res,rej)=>{
+              if(window.XLSX){res(window.XLSX);return;}
+              const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+              s.onload=()=>res(window.XLSX);s.onerror=()=>rej(new Error("Error"));document.head.appendChild(s);
+            });
+            const wb=XLSX.utils.book_new();
+            const ws1=XLSX.utils.json_to_sheet(ledger.map(m=>({
+              "Fecha":fmtFechaCorta(m.fecha),"Tipo":m.tipo,"Referencia":m.ref,
+              "Estado":m.estadoDoc||"","Total Doc $":m.totalDoc||"","Pagado $":m.totalPagado||"","Pendiente $":m.pendiente||"",
+              "Medio/Detalle":m.detalle,"Debe $":m.debe||"","Haber $":m.haber||"","Saldo $":m.saldo,"Usuario":m.usuario
+            })));
+            const docs=esCliente?ventasEntidad:comprasEntidad;
+            const ws2=XLSX.utils.json_to_sheet(docs.map(doc=>{
+              const totalDoc=esCliente?(doc.totalVenta||0):(doc.totalCompra||0);
+              const pagsDoc=pagosEntidad.filter(p=>(esCliente?p.ventaId:p.compraId)===doc.id);
+              const totalPag=pagsDoc.reduce((s,p)=>s+p.monto,0);
+              return {"Fecha":fmtFechaCorta(doc.fecha),"N° Doc":doc.id,"Comprobante":doc.nroComprobante||"","Total $":totalDoc,"Pagado $":totalPag,"Pendiente $":Math.max(0,totalDoc-totalPag),"Estado":totalDoc-totalPag<=0?"SALDADO":totalPag>0?"PARCIAL":"PENDIENTE"};
+            }));
+            const ws3=XLSX.utils.json_to_sheet(Object.entries(porMedio).map(([medio,monto])=>({"Medio de pago":medio,"Total $":monto,"Pagos":pagosEntidad.filter(p=>p.medioPago===medio).length})));
+            const setCols=(ws,rows)=>{if(!rows.length)return;ws["!cols"]=Object.keys(rows[0]).map(k=>({wch:Math.max(k.length,...rows.map(r=>String(r[k]||"").length))+2}));};
+            setCols(ws1,[]); setCols(ws2,[]); setCols(ws3,[]);
+            XLSX.utils.book_append_sheet(wb,ws1,"Libro Mayor");
+            XLSX.utils.book_append_sheet(wb,ws2,"Por Comprobante");
+            XLSX.utils.book_append_sheet(wb,ws3,"Por Medio de Pago");
+            XLSX.writeFile(wb,`CtaCte_${selEntidad.razonSocial.replace(/\s+/g,"_")}_${new Date().toISOString().slice(0,10)}.xlsx`);
+          };
+          return(
+            <div style={{marginBottom:14}}>
+              <div style={{display:"flex",justifyContent:"flex-end",marginBottom:12}}>
+                <button className="btn btn-outline" onClick={exportarInforme} style={{borderColor:"#16A34A",color:"#16A34A",fontSize:12}}>📥 EXPORTAR EXCEL (3 hojas)</button>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                <div className="sec" style={{borderTop:"3px solid "+colorTab}}>
+                  <div className="sec-title">💳 PAGOS POR MEDIO</div>
+                  {Object.entries(porMedio).sort((a,b)=>b[1]-a[1]).map(([medio,monto])=>(
+                    <div key={medio} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid #EBF5FB"}}>
+                      <span style={{fontSize:13,fontWeight:600}}>{medio}</span>
+                      <div style={{textAlign:"right"}}>
+                        <div style={{fontWeight:700,color:colorTab}}>$ {fmtP(monto)}</div>
+                        <div style={{fontSize:10,color:"#94A3B8"}}>{pagosEntidad.filter(p=>p.medioPago===medio).length} pago{pagosEntidad.filter(p=>p.medioPago===medio).length!==1?"s":""}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {!Object.keys(porMedio).length&&<div style={{color:"#94A3B8",fontSize:12,padding:8}}>Sin pagos registrados</div>}
+                </div>
+                <div className="sec" style={{borderTop:"3px solid #1A5276"}}>
+                  <div className="sec-title">📋 RESUMEN</div>
+                  {[
+                    ["Total facturado/comprado","$ "+fmtP(totalDebe),"#1A3A5C"],
+                    ["Total cobrado/pagado","$ "+fmtP(totalHaber),"#16A34A"],
+                    ["Saldo pendiente","$ "+fmtP(saldoActual),saldoActual>0?"#DC2626":"#16A34A"],
+                    ["Cantidad de pagos",String(pagosEntidad.length),"#7C3AED"],
+                    ["Pago promedio",pagosEntidad.length>0?"$ "+fmtP(totalHaber/pagosEntidad.length):"—","#0891B2"],
+                  ].map(([k,v,c])=>(
+                    <div key={k} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid #EBF5FB"}}>
+                      <span style={{fontSize:12,color:"#5D6D7E"}}>{k}</span>
+                      <span style={{fontWeight:700,color:c,fontSize:13}}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+        {modalPago&&(
+          <Modal title={esCliente?"💰 NUEVO COBRO — "+selEntidad.razonSocial:"💸 NUEVO PAGO — "+selEntidad.razonSocial} onClose={()=>setModalPago(false)} w={540}>
+            {err&&<div className="err">{err}</div>}
+            <div className="grid2">
+              <div className="fg"><label>FECHA *</label><input type="date" value={formPago.fecha} onChange={e=>setFormPago(p=>({...p,fecha:e.target.value}))}/></div>
+              <div className="fg"><label>MONTO *</label>
+                <input type="number" step="0.01" min="0.01" value={montoInput}
+                  onChange={e=>setMontoInput(e.target.value)}
+                  style={{width:"100%",fontSize:14}} placeholder="0,00"/>
+              </div>
+              <div className="fg"><label>MEDIO DE PAGO *</label>
+                <select value={formPago.medioPago} onChange={e=>setFormPago(p=>({...p,medioPago:e.target.value}))}>
+                  {MEDIOS_PAGO.map(m=><option key={m}>{m}</option>)}
+                </select>
+              </div>
+              <div className="fg"><label>DETALLE DEL MEDIO</label>
+                <input value={formPago.detallePago||""} onChange={e=>setFormPago(p=>({...p,detallePago:e.target.value}))}
+                  placeholder={formPago.medioPago==="CHEQUE"?"Nro. cheque, banco, vto...":formPago.medioPago==="TRANSFERENCIA"?"Referencia, banco emisor...":formPago.medioPago==="MERCADO PAGO"?"Alias o referencia MP...":"Detalle opcional"}/>
+              </div>
+              <div className="fg full"><label>CONCEPTO</label>
+                <input value={formPago.concepto||""} onChange={e=>setFormPago(p=>({...p,concepto:e.target.value}))} placeholder="Ej: Pago factura enero, Saldo a cuenta, Seña..."/>
+              </div>
+              <div className="fg full"><label>{esCliente?"VENTA RELACIONADA (opcional)":"COMPRA RELACIONADA (opcional)"}</label>
+                <select value={formPago.referenciaId||""} onChange={e=>setFormPago(p=>({...p,referenciaId:e.target.value}))}>
+                  <option value="">— Sin referencia a documento específico —</option>
+                  {(esCliente?ventasEntidad:comprasEntidad).map(d=>{
+                    const totalDoc=esCliente?d.totalVenta:d.totalCompra;
+                    const pagosDoc=(esCliente?pagosClientes:pagosProveedores).filter(p=>(esCliente?p.ventaId:p.compraId)===d.id&&(esCliente?p.clienteId:p.proveedorId)===selEntidad.id);
+                    const pendiente=totalDoc-pagosDoc.reduce((s,p)=>s+p.monto,0);
+                    return(
+                      <option key={d.id} value={d.id}>
+                        #{d.id} · {fmtFechaCorta(d.fecha)} · Total: $ {fmtP(totalDoc)} · Pendiente: $ {fmtP(pendiente)}{d.nroComprobante?" · "+d.nroComprobante:""}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            </div>
+            <div style={{marginTop:12,padding:"10px 14px",background:"#F0FDF4",borderRadius:6,fontSize:12,color:"#16A34A",borderLeft:"3px solid #16A34A"}}>
+              <strong>Saldo actual:</strong> $ {fmtP(saldoActual)} · Después del pago: <strong style={{color:saldoActual-(parseFloat(montoInput)||0)<=0?"#16A34A":"#E8620A"}}>$ {fmtP(saldoActual-(parseFloat(montoInput)||0))}</strong>
+            </div>
+            <div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:16}}>
+              <button className="btn btn-outline" onClick={()=>setModalPago(false)} disabled={guardando}>CANCELAR</button>
+              <button className="btn" style={{background:colorTab,color:"#fff",padding:"9px 20px"}} onClick={guardarPago} disabled={guardando}>
+                {guardando?"GUARDANDO...":esCliente?"💰 CONFIRMAR COBRO":"💸 CONFIRMAR PAGO"}
+              </button>
+            </div>
+          </Modal>
+        )}
+      </div>
+    );
+  }
+
+  // ── Vista principal (lista) ───────────────────
+  const lista=esCliente?balancesClientes:balancesProveedores;
+  const listaFiltrada=lista.filter(e=>(e.razonSocial||'').toLowerCase().includes((buscar||'').toLowerCase()));
+  const totalDeudaFiltrada=listaFiltrada.reduce((s,e)=>s+Math.max(0,e.saldo),0);
+  const totalAFavorFiltrada=listaFiltrada.reduce((s,e)=>s+Math.max(0,-e.saldo),0);
+
+  return(
+    <div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:10}}>
+        <h2 style={{color:"#1A3A5C",fontSize:17,borderBottom:"3px solid #1A6FA8",paddingBottom:8}}>💳 CUENTA CORRIENTE <span style={{fontSize:11,color:"#94A3B8",fontWeight:400,marginLeft:8}}>v{VERSION}</span></h2>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(165px,1fr))",gap:10,marginBottom:16}}>
+        {[
+          {l:"Total a cobrar",v:"$ "+fmtP(totalACobrar),c:"#DC2626",i:"⚠️",sub:"Saldo deudor clientes"},
+          {l:"Total a pagar",v:"$ "+fmtP(totalAPagar),c:"#E8620A",i:"💸",sub:"Saldo adeudado proveed."},
+          {l:"Clientes con saldo",v:balancesClientes.filter(c=>c.saldo>0).length+" cliente"+(balancesClientes.filter(c=>c.saldo>0).length!==1?"s":""),c:"#1A5276",i:"👥",sub:"Con deuda pendiente"},
+          {l:"Proveed. con saldo",v:balancesProveedores.filter(p=>p.saldo>0).length+" proveed.",c:"#7C3AED",i:"🏭",sub:"Con deuda pendiente"},
+        ].map(c=>(
+          <div key={c.l} style={{background:"#fff",borderRadius:8,padding:"14px 16px",boxShadow:"0 2px 8px rgba(0,0,0,0.07)",borderLeft:`4px solid ${c.c}`}}>
+            <div style={{fontSize:20}}>{c.i}</div>
+            <div style={{fontSize:15,fontWeight:700,color:c.c,marginTop:4}}>{c.v}</div>
+            <div style={{fontSize:11,color:"#1A3A5C",fontWeight:700}}>{c.l}</div>
+            <div style={{fontSize:10,color:"#94A3B8"}}>{c.sub}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+        <button onClick={()=>{setTab("clientes");setSelEntidad(null);setBuscar("");}} className="btn" style={{fontSize:13,padding:"9px 22px",background:tab==="clientes"?"#16A34A":"#fff",color:tab==="clientes"?"#fff":"#16A34A",border:"2px solid #16A34A"}}>👥 CLIENTES</button>
+        <button onClick={()=>{setTab("proveedores");setSelEntidad(null);setBuscar("");}} className="btn" style={{fontSize:13,padding:"9px 22px",background:tab==="proveedores"?"#E8620A":"#fff",color:tab==="proveedores"?"#fff":"#E8620A",border:"2px solid #E8620A"}}>🏭 PROVEEDORES</button>
+        <button onClick={()=>{setTab("informes");setSelEntidad(null);setBuscar("");}} className="btn" style={{fontSize:13,padding:"9px 22px",background:tab==="informes"?"#1A5276":"#fff",color:tab==="informes"?"#fff":"#1A5276",border:"2px solid #1A5276"}}>📊 INFORMES</button>
+      </div>
+      {tab==="informes"&&(()=>{
+        const exportarGlobal=async()=>{
+          const XLSX=await new Promise((res,rej)=>{
+            if(window.XLSX){res(window.XLSX);return;}
+            const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+            s.onload=()=>res(window.XLSX);s.onerror=()=>rej(new Error("Error"));document.head.appendChild(s);
+          });
+          const wb=XLSX.utils.book_new();
+          const ws1=XLSX.utils.json_to_sheet(balancesClientes.sort((a,b)=>b.saldo-a.saldo).map(c=>({"Cliente":c.razonSocial,"CUIT":c.cuit,"Total Facturado $":c.totalVentas,"Total Cobrado $":c.totalCobros,"Saldo $":c.saldo,"Estado":c.saldo<=0?"Al día":"Deudor"})));
+          const ws2=XLSX.utils.json_to_sheet(balancesProveedores.sort((a,b)=>b.saldo-a.saldo).map(p=>({"Proveedor":p.razonSocial,"CUIT":p.cuit,"Total Comprado $":p.totalCompras,"Total Pagado $":p.totalPagos,"Saldo $":p.saldo,"Estado":p.saldo<=0?"Al día":"Deudor"})));
+          const todosLosPagos=[...pagosClientes.map(p=>({...p,tipo:"COBRO",entidad:p.clienteNombre})),...pagosProveedores.map(p=>({...p,tipo:"PAGO",entidad:p.proveedorNombre}))].sort((a,b)=>b.fecha.localeCompare(a.fecha));
+          const ws3=XLSX.utils.json_to_sheet(todosLosPagos.map(p=>({"Fecha":fmtFechaCorta(p.fecha),"Tipo":p.tipo,"Entidad":p.entidad,"Monto $":p.monto,"Medio":p.medioPago,"Detalle":p.detallePago||"","Concepto":p.concepto||"","Usuario":p.usuario})));
+          const setCols=(ws,rows)=>{if(!rows.length)return;ws["!cols"]=Object.keys(rows[0]).map(k=>({wch:Math.max(k.length,...rows.map(r=>String(r[k]||"").length))+2}));};
+          setCols(ws1,[]); setCols(ws2,[]); setCols(ws3,[]);
+          XLSX.utils.book_append_sheet(wb,ws1,"Clientes - Saldos");
+          XLSX.utils.book_append_sheet(wb,ws2,"Proveedores - Saldos");
+          XLSX.utils.book_append_sheet(wb,ws3,"Todos los pagos");
+          XLSX.writeFile(wb,`CtaCte_Informe_${new Date().toISOString().slice(0,10)}.xlsx`);
+        };
+        const porMedioTotal={};
+        [...pagosClientes,...pagosProveedores].forEach(p=>{porMedioTotal[p.medioPago]=(porMedioTotal[p.medioPago]||0)+p.monto;});
+        return(
+          <div>
+            <div style={{display:"flex",justifyContent:"flex-end",marginBottom:14}}>
+              <button className="btn btn-outline" onClick={exportarGlobal} style={{borderColor:"#16A34A",color:"#16A34A",fontSize:13}}>📥 EXPORTAR INFORME COMPLETO (Excel 3 hojas)</button>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12,marginBottom:14}}>
+              <div className="sec" style={{borderTop:"3px solid #16A34A"}}>
+                <div className="sec-title">👥 TOP DEUDORES — CLIENTES</div>
+                {balancesClientes.filter(c=>c.saldo>0).sort((a,b)=>b.saldo-a.saldo).slice(0,5).map(c=>(
+                  <div key={c.id} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid #EBF5FB"}}>
+                    <span style={{fontSize:12,fontWeight:600,maxWidth:130,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.razonSocial}</span>
+                    <span style={{fontWeight:700,color:"#DC2626",fontSize:13}}>$ {fmtP(c.saldo)}</span>
+                  </div>
+                ))}
+                {!balancesClientes.filter(c=>c.saldo>0).length&&<div style={{color:"#94A3B8",fontSize:12}}>Sin deudores</div>}
+              </div>
+              <div className="sec" style={{borderTop:"3px solid #E8620A"}}>
+                <div className="sec-title">🏭 TOP ACREEDORES — PROVEEDORES</div>
+                {balancesProveedores.filter(p=>p.saldo>0).sort((a,b)=>b.saldo-a.saldo).slice(0,5).map(p=>(
+                  <div key={p.id} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid #EBF5FB"}}>
+                    <span style={{fontSize:12,fontWeight:600,maxWidth:130,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.razonSocial}</span>
+                    <span style={{fontWeight:700,color:"#E8620A",fontSize:13}}>$ {fmtP(p.saldo)}</span>
+                  </div>
+                ))}
+                {!balancesProveedores.filter(p=>p.saldo>0).length&&<div style={{color:"#94A3B8",fontSize:12}}>Sin acreedores</div>}
+              </div>
+              <div className="sec" style={{borderTop:"3px solid #7C3AED"}}>
+                <div className="sec-title">💳 PAGOS POR MEDIO</div>
+                {Object.entries(porMedioTotal).sort((a,b)=>b[1]-a[1]).map(([medio,monto])=>(
+                  <div key={medio} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid #EBF5FB"}}>
+                    <span style={{fontSize:12,fontWeight:600}}>{medio}</span>
+                    <span style={{fontWeight:700,color:"#7C3AED",fontSize:13}}>$ {fmtP(monto)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+      {tab!=="informes"&&(
+        <div style={{marginBottom:12,display:"flex",gap:8,alignItems:"center"}}>
+          <input value={buscar} onChange={e=>setBuscar(e.target.value)}
+            placeholder={`🔍 Buscar ${esCliente?"cliente":"proveedor"}...`}
+            style={{flex:1}}
+            onKeyDown={e=>{try{e.target.value;}catch(_){setBuscar("");}}}
+          />
+          {buscar&&<button className="btn btn-outline" onClick={()=>setBuscar("")} style={{fontSize:11,padding:"6px 10px"}}>✕</button>}
+        </div>
+      )}
+      {tab!=="informes"&&<div style={{display:"flex",gap:16,marginBottom:10,fontSize:13,color:"#1A3A5C",flexWrap:"wrap"}}>
+        <span><strong>{listaFiltrada.length}</strong> {esCliente?"cliente":"proveedor"}{listaFiltrada.length!==1?"s":""}</span>
+        {totalDeudaFiltrada>0&&<span>Deuda pendiente: <strong style={{color:"#DC2626"}}>$ {fmtP(totalDeudaFiltrada)}</strong></span>}
+        {totalAFavorFiltrada>0&&<span>A favor: <strong style={{color:"#16A34A"}}>$ {fmtP(totalAFavorFiltrada)}</strong></span>}
+      </div>}
+      {tab!=="informes"&&<div style={{background:"#fff",borderRadius:8,overflow:"auto",boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}>
+        <table>
+          <thead><tr>
+            <th>{esCliente?"CLIENTE":"PROVEEDOR"}</th>
+            <th style={{textAlign:"right"}}>{esCliente?"TOTAL FACTURADO $":"TOTAL COMPRADO $"}</th>
+            <th style={{textAlign:"right"}}>{esCliente?"TOTAL COBRADO $":"TOTAL PAGADO $"}</th>
+            <th style={{textAlign:"right"}}>SALDO $</th>
+            <th></th>
+          </tr></thead>
+          <tbody>
+            {listaFiltrada.slice().sort((a,b)=>(a.razonSocial||'').localeCompare(b.razonSocial||'')).map(e=>(
+              <tr key={e.id}>
+                <td><b>{e.razonSocial}</b><br/><span style={{fontSize:11,color:"#94A3B8"}}>{e.cuit}</span></td>
+                <td style={{textAlign:"right",fontWeight:700,color:"#1A3A5C"}}>$ {fmtP(esCliente?e.totalVentas:e.totalCompras)}</td>
+                <td style={{textAlign:"right",fontWeight:700,color:"#16A34A"}}>$ {fmtP(esCliente?e.totalCobros:e.totalPagos)}</td>
+                <td style={{textAlign:"right",fontWeight:700,fontSize:14,color:e.saldo>0?"#DC2626":e.saldo<0?"#16A34A":"#94A3B8"}}>
+                  {e.saldo>0?"⚠️ ":e.saldo<0?"✅ ":""}$ {fmtP(e.saldo)}
+                </td>
+                <td><button className="btn btn-outline" onClick={()=>setSelEntidad(e)} style={{fontSize:11,padding:"4px 12px",whiteSpace:"nowrap"}}>VER CUENTA →</button></td>
+              </tr>
+            ))}
+            {!listaFiltrada.length&&<tr><td colSpan={5} style={{textAlign:"center",color:"#94A3B8",padding:32}}>Sin movimientos registrados aún</td></tr>}
+          </tbody>
+        </table>
+      </div>}
+    </div>
+  );
+}
+
 export default function App(){
   const [usuario,setUsuario]=useState(null);
   const [page,setPage]=useState("dash");
@@ -2090,11 +2877,13 @@ export default function App(){
   const [compras,setCompras]=useState([]);
   const [ventas,setVentas]=useState([]);
   const [usuarios,setUsuarios]=useState([]);
+  const [pagosClientes,setPagosClientes]=useState([]);
+  const [pagosProveedores,setPagosProveedores]=useState([]);
 
   const cargarDatos=async()=>{
     setCargando(true); setErrInicio("");
     try{
-      const [rArt,rCli,rProv,rUsr,rComp,rVta,rDetComp,rDetVta]=await Promise.all([
+      const [rArt,rCli,rProv,rUsr,rComp,rVta,rDetComp,rDetVta,rPagCli,rPagProv]=await Promise.all([
         sb.from("articulos").select("*").order("nombre",{ascending:true}).get(),
         sb.from("clientes").select("*").order("razon_social",{ascending:true}).get(),
         sb.from("proveedores").select("*").order("razon_social",{ascending:true}).get(),
@@ -2103,6 +2892,8 @@ export default function App(){
         sb.from("ventas").select("*").order("id",{ascending:false}).get(),
         sb.from("compras_detalle").select("*").get(),
         sb.from("ventas_detalle").select("*").get(),
+        sb.from("pagos_clientes").select("*").order("fecha",{ascending:false}).get(),
+        sb.from("pagos_proveedores").select("*").order("fecha",{ascending:false}).get(),
       ]);
       setArticulos((rArt.data||[]).map(mapArt));
       setClientes((rCli.data||[]).map(mapCli));
@@ -2112,6 +2903,8 @@ export default function App(){
       setCompras((rComp.data||[]).map(c=>({...mapComp(c),lineas:detComp.filter(d=>d.compra_id===c.id).map(mapLinComp)})));
       const detVta=rDetVta.data||[];
       setVentas((rVta.data||[]).map(v=>({...mapVta(v),lineas:detVta.filter(d=>d.venta_id===v.id).map(mapLinVta)})));
+      setPagosClientes((rPagCli.data||[]).map(mapPagoCli));
+      setPagosProveedores((rPagProv.data||[]).map(mapPagoProv));
     }catch(e){
       setErrInicio("Error al cargar datos: "+e.message);
     }finally{setCargando(false);}
@@ -2126,6 +2919,7 @@ export default function App(){
     setUsuario(null);
     setArticulos([]); setClientes([]); setProveedores([]);
     setCompras([]); setVentas([]); setUsuarios([]);
+    setPagosClientes([]); setPagosProveedores([]);
     setPage("dash");
   };
 
@@ -2139,10 +2933,11 @@ export default function App(){
       case "art":  return <Articulos articulos={articulos} setArticulos={setArticulos} usuario={usuario}/>;
       case "cli":  return <Clientes clientes={clientes} setClientes={setClientes} usuario={usuario}/>;
       case "prov": return <Proveedores proveedores={proveedores} setProveedores={setProveedores} usuario={usuario}/>;
-      case "comp": return <Compras proveedores={proveedores} articulos={articulos} setArticulos={setArticulos} compras={compras} setCompras={setCompras} usuario={usuario}/>;
+      case "comp": return <Compras proveedores={proveedores} articulos={articulos} setArticulos={setArticulos} compras={compras} setCompras={setCompras} usuario={usuario} pagosProveedores={pagosProveedores}/>;
       case "vta":  return <Ventas clientes={clientes} articulos={articulos} setArticulos={setArticulos} ventas={ventas} setVentas={setVentas} usuario={usuario}/>;
       case "rep":  return <Reportes ventas={ventas} articulos={articulos} compras={compras}/>;
       case "mov":  return <LibroMovimientos compras={compras} ventas={ventas} articulos={articulos}/>;
+      case "cta":  return <CuentaCorriente clientes={clientes} proveedores={proveedores} ventas={ventas} compras={compras} pagosClientes={pagosClientes} setPagosClientes={setPagosClientes} pagosProveedores={pagosProveedores} setPagosProveedores={setPagosProveedores} usuario={usuario}/>;
       case "usr":  return usuario.rol==="admin"?<UsuariosPage usuarios={usuarios} setUsuarios={setUsuarios}/>:<div style={{padding:20,color:"#DC2626",fontWeight:700}}>⛔ Sin permisos</div>;
       default: return null;
     }
@@ -2152,8 +2947,8 @@ export default function App(){
     <>
       <style>{css}</style>
       <div style={{display:"flex",minHeight:"100vh"}}>
-        <Sidebar usuario={usuario} page={page} setPage={setPage} onLogout={handleLogout}/>
-        <main style={{flex:1,padding:"20px 22px",overflowX:"auto",overflowY:"auto",minWidth:0}}>
+        <Sidebar usuario={usuario} page={page} setPage={setPage} onLogout={handleLogout} onRefresh={cargarDatos}/>
+        <main style={{flex:1,padding:"20px 22px",overflowX:"auto",overflowY:"auto",minWidth:0,marginLeft:210}}>
           {render()}
         </main>
       </div>
