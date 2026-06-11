@@ -1480,11 +1480,16 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,
   };
 
   const filtradas=compras.filter(c=>{
-    const txtOk=c.proveedorNombre.toLowerCase().includes(buscar.toLowerCase())||String(c.id).includes(buscar)||c.tipoBoleta.toLowerCase().includes(buscar.toLowerCase());
-    const desdeOk=!desde||c.fecha>=desde;
-    const hastaOk=!hasta||c.fecha<=hasta;
-    const provOk=!provFiltro||c.proveedorNombre===provFiltro;
-    return txtOk&&desdeOk&&hastaOk&&provOk;
+    try{
+      const txtOk=(c.proveedorNombre||"").toLowerCase().includes(buscar.toLowerCase())||String(c.id||"").includes(buscar)||(c.tipoBoleta||"").toLowerCase().includes(buscar.toLowerCase())||(c.nroComprobante||"").includes(buscar);
+      const desdeOk=!desde||c.fecha>=desde;
+      const hastaOk=!hasta||c.fecha<=hasta;
+      const provOk=!provFiltro||c.proveedorNombre===provFiltro;
+      return txtOk&&desdeOk&&hastaOk&&provOk;
+    }catch(e){
+      console.error("Error en filtrado:",e);
+      return false;
+    }
   }).slice().reverse();
 
   const totalFiltrado=filtradas.reduce((s,c)=>s+(c.totalCompra||0),0);
@@ -1767,11 +1772,16 @@ function Ventas({clientes,articulos,setArticulos,ventas,setVentas,usuario}){
   }
 
   const filtradas=ventas.filter(v=>{
-    const txtOk=v.clienteNombre.toLowerCase().includes(buscar.toLowerCase())||String(v.id).includes(buscar);
-    const desdeOk=!desde||v.fecha>=desde;
-    const hastaOk=!hasta||v.fecha<=hasta;
-    const cliOk=!cliFiltro||v.clienteNombre===cliFiltro;
-    return txtOk&&desdeOk&&hastaOk&&cliOk;
+    try{
+      const txtOk=(v.clienteNombre||"").toLowerCase().includes(buscar.toLowerCase())||String(v.id||"").includes(buscar)||(v.nroComprobante||"").includes(buscar);
+      const desdeOk=!desde||v.fecha>=desde;
+      const hastaOk=!hasta||v.fecha<=hasta;
+      const cliOk=!cliFiltro||v.clienteNombre===cliFiltro;
+      return txtOk&&desdeOk&&hastaOk&&cliOk;
+    }catch(e){
+      console.error("Error en filtrado:",e);
+      return false;
+    }
   }).slice().reverse();
 
   const totalFiltrado=filtradas.reduce((s,v)=>s+(v.totalVenta||0),0);
