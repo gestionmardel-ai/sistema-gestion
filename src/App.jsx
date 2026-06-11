@@ -1274,7 +1274,8 @@ function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usua
       const {data:compData}=await sb.from("compras").insert({
         fecha:enc.fecha,proveedor_id:+enc.proveedorId,proveedor_nombre:prov?.razonSocial||"",
         tipo_boleta:enc.tipoBoleta,nro_comprobante:enc.nroComprobante||"",
-        total_detalle:sub,total_impuestos:totalImp,total_compra:total,usuario_nombre:usuario.nombre
+        total_detalle:sub,total_impuestos:totalImp,total_compra:total,usuario_nombre:usuario.nombre,
+        OBSERVACIONES:enc.observaciones||""
       });
       const compId=compData[0].id;
       await sb.from("compras_detalle").insert(lineas.map(l=>{
@@ -1373,7 +1374,7 @@ function EditarCompra({compraOriginal,proveedores,articulos,setArticulos,setComp
         fecha:enc.fecha,proveedor_id:+enc.proveedorId,proveedor_nombre:prov?.razonSocial||"",
         tipo_boleta:enc.tipoBoleta,nro_comprobante:enc.nroComprobante||"",
         total_detalle:sub,total_impuestos:totalImp,total_compra:total,usuario_nombre:usuario.nombre,
-        observaciones:enc.observaciones||""
+        OBSERVACIONES:enc.observaciones||""
       });
       // 5. Reemplazar detalle
       await sb.from("compras_detalle").eq("compra_id",compraOriginal.id).delete();
@@ -1625,7 +1626,7 @@ function NuevaVenta({clientes,articulos,setArticulos,ventas,setVentas,usuario,on
       const {data:vtaData}=await sb.from("ventas").insert({
         fecha:enc.fecha,cliente_id:+enc.clienteId,cliente_nombre:cli?.razonSocial||"",
         nro_comprobante:enc.nroComprobante||nroAuto,nro_fac_oficial:enc.nroFacOficial||"",total_venta:totalVenta,usuario_nombre:usuario.nombre,
-        observaciones:enc.observaciones||""
+        OBSERVACIONES:enc.observaciones||""
       });
       const vtaId=vtaData[0].id;
       await sb.from("ventas_detalle").insert(lineas.map(l=>({
