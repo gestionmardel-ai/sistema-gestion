@@ -1066,11 +1066,13 @@ function NumInputAR({value, onChange, style, placeholder, disabled}){
   };
   const onCh = e => {
     const v = e.target.value;
+    // PUNTO 4: Aceptar tanto . como , — convertir . a , automáticamente
     if(!/^-?[\d.,]*$/.test(v)) return;
-    setRaw(v);
-    const parsed = parseFloat(parse(v));
+    const vCorregido = v.replace(/\./g, ',');
+    setRaw(vCorregido);
+    const parsed = parseFloat(parse(vCorregido));
     if(!isNaN(parsed)) onChange(parsed);
-    else if(v===""||v==="-") onChange(v);
+    else if(vCorregido===""||vCorregido==="-") onChange(vCorregido);
   };
   return(
     <input type="text"
@@ -1096,7 +1098,7 @@ function LineaCompraRow({linea,articulos,onChange,onDelete,onAddAfter}){
     <>
       {modalAbierto&&<ModalBuscarArticulo articulos={articulos} onSelect={(a)=>{selArticulo(a);setModalAbierto(false);}} onClose={()=>setModalAbierto(false)} mostrarSugerido={false}/>}
       <tr>
-        <td style={{minWidth:190}}>
+        <td style={{minWidth:220}}>
           <div onClick={()=>setModalAbierto(true)} style={{padding:"8px 10px",border:"1.5px solid",borderColor:linea.articuloId?"#1A8F4A":"#AED6F1",borderRadius:6,cursor:"pointer",background:linea.articuloId?"#EAFAF1":"#fff",display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:13}}>
             <span style={{fontWeight:linea.articuloId?600:400,color:linea.articuloId?"#1A5276":"#7F8C8D"}}>{linea.articuloNombre||"Buscar artículo..."}</span>
             <span style={{fontSize:15,opacity:0.6}}>🔍</span>
@@ -1194,6 +1196,7 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
           </div>
           <div className="fg"><label>USUARIO</label><input value={enc.usuario||""} disabled/></div>
         </div>
+        <div className="fg full"><label>OBSERVACIONES</label><textarea rows={2} value={enc.observaciones||""} onChange={e=>setEnc(p=>({...p,observaciones:e.target.value}))} placeholder="Notas adicionales sobre la compra (opcional)"/></div>
       </div>
       <div className="sec" style={{borderTop:"3px solid #E8620A"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
@@ -1592,7 +1595,7 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,
 
 function NuevaVenta({clientes,articulos,setArticulos,ventas,setVentas,usuario,onVolver}){
   const nroAuto = String(ventas.length+1).padStart(6,"0");
-  const [enc,setEnc]=useState({fecha:hoy(),clienteId:"",nroComprobante:nroAuto,nroFacOficial:""});
+  const [enc,setEnc]=useState({fecha:hoy(),clienteId:"",nroComprobante:nroAuto,nroFacOficial:"",observaciones:""});
   const [lineas,setLineas]=useState([{_k:1,articuloId:null,articuloNombre:"",articuloCodigo:"",precioCosto:0,rentabilidad:0,cantidad:"",precioUnitario:""}]);
   const [err,setErr]=useState("");
   const [guardando,setGuardando]=useState(false);
@@ -1618,7 +1621,8 @@ function NuevaVenta({clientes,articulos,setArticulos,ventas,setVentas,usuario,on
       const cli=clientes.find(c=>c.id===+enc.clienteId);
       const {data:vtaData}=await sb.from("ventas").insert({
         fecha:enc.fecha,cliente_id:+enc.clienteId,cliente_nombre:cli?.razonSocial||"",
-        nro_comprobante:enc.nroComprobante||nroAuto,nro_fac_oficial:enc.nroFacOficial||"",total_venta:totalVenta,usuario_nombre:usuario.nombre
+        nro_comprobante:enc.nroComprobante||nroAuto,nro_fac_oficial:enc.nroFacOficial||"",total_venta:totalVenta,usuario_nombre:usuario.nombre,
+        observaciones:enc.observaciones||""
       });
       const vtaId=vtaData[0].id;
       await sb.from("ventas_detalle").insert(lineas.map(l=>({
@@ -1635,7 +1639,7 @@ function NuevaVenta({clientes,articulos,setArticulos,ventas,setVentas,usuario,on
           setArticulos(p=>p.map(a=>a.id===+artId?{...a,stock:nuevoStock}:a));
         }
       }
-      const nuevaVta={id:vtaId,fecha:enc.fecha,clienteId:+enc.clienteId,clienteNombre:cli?.razonSocial||"",nroComprobante:enc.nroComprobante||nroAuto,nroFacOficial:enc.nroFacOficial||"",totalVenta,usuario:usuario.nombre,
+      const nuevaVta={id:vtaId,fecha:enc.fecha,clienteId:+enc.clienteId,clienteNombre:cli?.razonSocial||"",nroComprobante:enc.nroComprobante||nroAuto,nroFacOficial:enc.nroFacOficial||"",totalVenta,usuario:usuario.nombre,observaciones:enc.observaciones||"",
         lineas:lineas.map(l=>({articuloId:l.articuloId,articuloNombre:l.articuloNombre,articuloCodigo:l.articuloCodigo,cantidad:+l.cantidad,precioCosto:l.precioCosto,rentabilidad:l.rentabilidad,precioUnitario:+l.precioUnitario,subtotal:(+l.cantidad)*(+l.precioUnitario)}))};
       setVentas(p=>[...p,nuevaVta]);
       setOk(true); setTimeout(onVolver,1500);
@@ -1671,6 +1675,7 @@ function NuevaVenta({clientes,articulos,setArticulos,ventas,setVentas,usuario,on
           </div>
           <div className="fg"><label>USUARIO</label><input value={usuario.nombre} disabled/></div>
         </div>
+        <div className="fg full"><label>OBSERVACIONES</label><textarea rows={2} value={enc.observaciones||""} onChange={e=>setEnc(p=>({...p,observaciones:e.target.value}))} placeholder="Notas adicionales sobre la venta (opcional)"/></div>
       </div>
       <div className="sec" style={{borderTop:"3px solid #E8620A"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
