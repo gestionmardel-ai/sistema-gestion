@@ -1083,7 +1083,7 @@ function NumInputAR({value, onChange, style, placeholder, disabled}){
 }
 
 // ── LÍNEA DE COMPRA (detalle/marca, unidad, monto total, precio fracción) ─────
-function LineaCompraRow({linea,articulos,onChange,onDelete,onAddAfter,articuloRef}){
+function LineaCompraRow({linea,articulos,onChange,onDelete,onAddAfter}){
   const [modalAbierto,setModalAbierto]=useState(false);
   const cantidad=parseFloat(linea.cantidad)||0;
   const montoTotal=parseFloat(linea.montoTotal)||0;
@@ -1099,7 +1099,7 @@ function LineaCompraRow({linea,articulos,onChange,onDelete,onAddAfter,articuloRe
       {modalAbierto&&<ModalBuscarArticulo articulos={articulos} onSelect={(a)=>{selArticulo(a);setModalAbierto(false);}} onClose={()=>setModalAbierto(false)} mostrarSugerido={false}/>}
       <tr>
         <td style={{minWidth:220}}>
-          <div ref={articuloRef} onClick={()=>setModalAbierto(true)} style={{padding:"8px 10px",border:"1.5px solid",borderColor:linea.articuloId?"#1A8F4A":"#AED6F1",borderRadius:6,cursor:"pointer",background:linea.articuloId?"#EAFAF1":"#fff",display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:13}}>
+          <div onClick={()=>setModalAbierto(true)} style={{padding:"8px 10px",border:"1.5px solid",borderColor:linea.articuloId?"#1A8F4A":"#AED6F1",borderRadius:6,cursor:"pointer",background:linea.articuloId?"#EAFAF1":"#fff",display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:13}}>
             <span style={{fontWeight:linea.articuloId?600:400,color:linea.articuloId?"#1A5276":"#7F8C8D"}}>{linea.articuloNombre||"Buscar artículo..."}</span>
             <span style={{fontSize:15,opacity:0.6}}>🔍</span>
           </div>
@@ -1155,28 +1155,13 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
   const linNueva=()=>({_k:Date.now(),articuloId:null,articuloNombre:"",articuloCodigo:"",detalle:"",cantidad:"",unidadMedida:"Unidad",montoTotal:"",descuento:""});
   const [lineas,setLineas]=useState(lineasInit);
   const [impuestos,setImpuestos]=useState(impuestosInit);
-  const articuloRefs=useRef({});
 
   const sub=lineas.reduce((s,l)=>s+(parseFloat(l.montoTotal)||0)-(parseFloat(l.descuento)||0),0);
   const totalImp=impuestos.reduce((s,x)=>s+(parseFloat(x.monto)||0),0);
   const total=sub+totalImp;
 
-  const agregar=()=>{
-    setLineas(p=>[...p,linNueva()]);
-    setTimeout(()=>{
-      const keys=Object.keys(articuloRefs.current);
-      const lastKey=keys[keys.length-1];
-      if(lastKey&&articuloRefs.current[lastKey]?.click) articuloRefs.current[lastKey].click();
-    },50);
-  };
-  const agregarDespues=i=>{
-    setLineas(p=>{const n=[...p];n.splice(i+1,0,linNueva());return n;});
-    setTimeout(()=>{
-      const keys=Object.keys(articuloRefs.current);
-      const lastKey=keys[keys.length-1];
-      if(lastKey&&articuloRefs.current[lastKey]?.click) articuloRefs.current[lastKey].click();
-    },50);
-  };
+  const agregar=()=>setLineas(p=>[...p,linNueva()]);
+  const agregarDespues=i=>setLineas(p=>{const n=[...p];n.splice(i+1,0,linNueva());return n;});
   const mod=(i,d)=>setLineas(p=>p.map((l,idx)=>idx===i?d:l));
   const del=i=>setLineas(p=>p.filter((_,idx)=>idx!==i));
   const agregarImp=()=>setImpuestos(p=>[...p,{_k:Date.now(),concepto:"",monto:""}]);
@@ -1228,8 +1213,7 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
             <tbody>
               {lineas.map((l,i)=>(
                 <LineaCompraRow key={l._k} linea={l} articulos={articulos}
-                  onChange={d=>mod(i,d)} onDelete={()=>del(i)} onAddAfter={()=>agregarDespues(i)}
-                  articuloRef={el=>{articuloRefs.current[l._k]=el;}}/>
+                  onChange={d=>mod(i,d)} onDelete={()=>del(i)} onAddAfter={()=>agregarDespues(i)}/>
               ))}
               {!lineas.length&&<tr><td colSpan={8} style={{textAlign:"center",color:"#94A3B8",padding:14}}>Sin líneas</td></tr>}
             </tbody>
