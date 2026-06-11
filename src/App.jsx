@@ -138,9 +138,9 @@ const css = `
   input:focus, select:focus { border-color: #1A6FA8; box-shadow: 0 0 0 3px rgba(26,111,168,0.12); }
   input:disabled { background: #EBF5FB; color: #7F8C8D; }
   label { font-weight: 600; font-size: 12px; color: #1A5276; margin-bottom: 4px; display: block; letter-spacing: 0.3px; text-transform: uppercase; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th { background: #1A5276; color: #fff; padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; }
-  td { padding: 10px 14px; border-bottom: 1px solid #D6EAF8; vertical-align: middle; color: #1C2833; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
+  th { background: #1A5276; color: #fff; padding: 10px 14px; text-align: center; font-size: 11px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; }
+  td { padding: 8px 10px; border-bottom: 1px solid #D6EAF8; vertical-align: middle; color: #1C2833; }
   tr:hover td { background: rgba(26,111,168,0.05); }
   .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
   .modal-ov { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; }
@@ -1083,7 +1083,7 @@ function NumInputAR({value, onChange, style, placeholder, disabled}){
 }
 
 // ── LÍNEA DE COMPRA (detalle/marca, unidad, monto total, precio fracción) ─────
-function LineaCompraRow({linea,articulos,onChange,onDelete,onAddAfter}){
+function LineaCompraRow({linea,articulos,onChange,onDelete,onAddAfter,articuloRef}){
   const [modalAbierto,setModalAbierto]=useState(false);
   const cantidad=parseFloat(linea.cantidad)||0;
   const montoTotal=parseFloat(linea.montoTotal)||0;
@@ -1099,7 +1099,7 @@ function LineaCompraRow({linea,articulos,onChange,onDelete,onAddAfter}){
       {modalAbierto&&<ModalBuscarArticulo articulos={articulos} onSelect={(a)=>{selArticulo(a);setModalAbierto(false);}} onClose={()=>setModalAbierto(false)} mostrarSugerido={false}/>}
       <tr>
         <td style={{minWidth:220}}>
-          <div onClick={()=>setModalAbierto(true)} style={{padding:"8px 10px",border:"1.5px solid",borderColor:linea.articuloId?"#1A8F4A":"#AED6F1",borderRadius:6,cursor:"pointer",background:linea.articuloId?"#EAFAF1":"#fff",display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:13}}>
+          <div ref={articuloRef} onClick={()=>setModalAbierto(true)} style={{padding:"8px 10px",border:"1.5px solid",borderColor:linea.articuloId?"#1A8F4A":"#AED6F1",borderRadius:6,cursor:"pointer",background:linea.articuloId?"#EAFAF1":"#fff",display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:13}}>
             <span style={{fontWeight:linea.articuloId?600:400,color:linea.articuloId?"#1A5276":"#7F8C8D"}}>{linea.articuloNombre||"Buscar artículo..."}</span>
             <span style={{fontSize:15,opacity:0.6}}>🔍</span>
           </div>
@@ -1155,13 +1155,28 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
   const linNueva=()=>({_k:Date.now(),articuloId:null,articuloNombre:"",articuloCodigo:"",detalle:"",cantidad:"",unidadMedida:"Unidad",montoTotal:"",descuento:""});
   const [lineas,setLineas]=useState(lineasInit);
   const [impuestos,setImpuestos]=useState(impuestosInit);
+  const articuloRefs=useRef({});
 
   const sub=lineas.reduce((s,l)=>s+(parseFloat(l.montoTotal)||0)-(parseFloat(l.descuento)||0),0);
   const totalImp=impuestos.reduce((s,x)=>s+(parseFloat(x.monto)||0),0);
   const total=sub+totalImp;
 
-  const agregar=()=>setLineas(p=>[...p,linNueva()]);
-  const agregarDespues=i=>setLineas(p=>{const n=[...p];n.splice(i+1,0,linNueva());return n;});
+  const agregar=()=>{
+    setLineas(p=>[...p,linNueva()]);
+    setTimeout(()=>{
+      const keys=Object.keys(articuloRefs.current);
+      const lastKey=keys[keys.length-1];
+      if(lastKey&&articuloRefs.current[lastKey]?.click) articuloRefs.current[lastKey].click();
+    },50);
+  };
+  const agregarDespues=i=>{
+    setLineas(p=>{const n=[...p];n.splice(i+1,0,linNueva());return n;});
+    setTimeout(()=>{
+      const keys=Object.keys(articuloRefs.current);
+      const lastKey=keys[keys.length-1];
+      if(lastKey&&articuloRefs.current[lastKey]?.click) articuloRefs.current[lastKey].click();
+    },50);
+  };
   const mod=(i,d)=>setLineas(p=>p.map((l,idx)=>idx===i?d:l));
   const del=i=>setLineas(p=>p.filter((_,idx)=>idx!==i));
   const agregarImp=()=>setImpuestos(p=>[...p,{_k:Date.now(),concepto:"",monto:""}]);
@@ -1213,7 +1228,8 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
             <tbody>
               {lineas.map((l,i)=>(
                 <LineaCompraRow key={l._k} linea={l} articulos={articulos}
-                  onChange={d=>mod(i,d)} onDelete={()=>del(i)} onAddAfter={()=>agregarDespues(i)}/>
+                  onChange={d=>mod(i,d)} onDelete={()=>del(i)} onAddAfter={()=>agregarDespues(i)}
+                  articuloRef={el=>{articuloRefs.current[l._k]=el;}}/>
               ))}
               {!lineas.length&&<tr><td colSpan={8} style={{textAlign:"center",color:"#94A3B8",padding:14}}>Sin líneas</td></tr>}
             </tbody>
@@ -1441,6 +1457,7 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,
             <div key={k}><div style={{fontSize:10,color:"#94A3B8",fontWeight:700}}>{k}</div><div style={{fontWeight:700}}>{v}</div></div>
           ))}
         </div></div>
+        {c.observaciones&&<div className="sec" style={{borderLeft:"3px solid #E8620A"}}><div className="sec-title">📝 OBSERVACIONES</div><div style={{color:"#1A5276",fontSize:14,lineHeight:1.6}}>{c.observaciones}</div></div>}
         <div style={{background:"#fff",borderRadius:8,overflow:"auto",marginBottom:12,boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}>
           <table><thead><tr><th>ARTÍCULO</th><th>DETALLE/MARCA</th><th>CANT.</th><th>UNIDAD</th><th style={{textAlign:"right"}}>MONTO TOTAL $</th><th style={{textAlign:"right",color:"#FCA5A5"}}>DESC. $</th><th style={{textAlign:"right"}}>PRECIO FRACC. $</th></tr></thead>
             <tbody>{c.lineas.map((l,i)=><tr key={i}><td><b>{l.articuloCodigo}</b> {l.articuloNombre}</td><td style={{fontSize:12,color:"#5D6D7E"}}>{l.detalle||<span style={{color:"#BDC3C7"}}>—</span>}</td><td>{l.cantidad}</td><td style={{fontSize:12,color:"#7F8C8D"}}>{l.unidadMedida||"—"}</td><td style={{textAlign:"right",fontWeight:700}}>$ {fmtP(l.total)}</td><td style={{textAlign:"right",color:"#C0392B"}}>{l.descuento>0?"$ "+fmtP(l.descuento):<span style={{color:"#BDC3C7"}}>—</span>}</td><td style={{textAlign:"right",fontWeight:700,color:"#0891B2"}}>$ {fmtP(l.precioFraccion||l.precioUnitario)}</td></tr>)}</tbody>
@@ -1497,6 +1514,7 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,
       "Subtotal $": c.totalDetalle,
       "Impuestos $": c.totalImpuestos,
       "Total $": c.totalCompra,
+      "Observaciones": c.observaciones||"",
       "Usuario": c.usuario,
     }));
     const detalle=[];
@@ -1746,6 +1764,7 @@ function Ventas({clientes,articulos,setArticulos,ventas,setVentas,usuario}){
             <div key={k+val}><div style={{fontSize:10,color:"#94A3B8",fontWeight:700}}>{k}</div><div style={{fontWeight:700}}>{val}</div></div>
           ))}
         </div></div>
+        {v.observaciones&&<div className="sec" style={{borderLeft:"3px solid #16A34A"}}><div className="sec-title">📝 OBSERVACIONES</div><div style={{color:"#1A5276",fontSize:14,lineHeight:1.6}}>{v.observaciones}</div></div>}
         <div style={{background:"#fff",borderRadius:8,overflow:"auto",marginBottom:12,boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}>
           <table><thead><tr><th>ARTÍCULO</th><th>UNIDAD</th><th>CANT.</th><th>COSTO $</th><th>P.UNIT $</th><th>SUBTOTAL $</th><th>GANANCIA $</th></tr></thead>
             <tbody>{v.lineas.map((l,i)=>{const g=l.subtotal-(l.cantidad||0)*(l.precioCosto||0);return(
@@ -1781,6 +1800,7 @@ function Ventas({clientes,articulos,setArticulos,ventas,setVentas,usuario}){
       "Cliente": v.clienteNombre,
       "Total Venta $": v.totalVenta,
       "Ganancia $": v.lineas.reduce((s,l)=>s+(l.subtotal||0)-(l.cantidad||0)*(l.precioCosto||0),0),
+      "Observaciones": v.observaciones||"",
       "Usuario": v.usuario,
     }));
     const detalle=[];
