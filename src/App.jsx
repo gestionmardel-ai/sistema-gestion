@@ -1219,7 +1219,7 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
           <button className="btn btn-primary" onClick={agregar} style={{fontSize:12}}>+ LÍNEA</button>
         </div>
         <div style={{overflowX:"auto"}}>
-          <table>
+          <table style={{minWidth:"1200px"}}>
             <thead><tr>
               <th>ARTÍCULO</th><th>DETALLE / MARCA</th><th>CANT.</th><th>UNIDAD</th>
               <th>MONTO TOTAL $</th><th style={{color:"#FCA5A5"}}>DESCUENTO $</th>
@@ -1325,7 +1325,7 @@ function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usua
           detalle:l.detalle||"",unidadMedida:l.unidadMedida||"Unidad",cantidad:cant,
           precioUnitario:precFrac,precioFraccion:precFrac,total:montoTot,descuento:desc};
       });
-      setCompras(p=>[...p,{id:compId,fecha:enc.fecha,proveedorId:+enc.proveedorId,proveedorNombre:prov?.razonSocial||"",tipoBoleta:enc.tipoBoleta,nroComprobante:enc.nroComprobante||"",totalDetalle:sub,totalImpuestos:totalImp,totalCompra:total,usuario:usuario.nombre,lineas:lineasGuardadas}]);
+      setCompras(p=>[...p,{id:compId,fecha:enc.fecha,proveedorId:+enc.proveedorId,proveedorNombre:prov?.razonSocial||"",tipoBoleta:enc.tipoBoleta,nroComprobante:enc.nroComprobante||"",totalDetalle:sub,totalImpuestos:totalImp,totalCompra:total,usuario:usuario.nombre,observaciones:enc.observaciones||"",lineas:lineasGuardadas}]);
       setOk(true); setTimeout(onVolver,1500);
     }catch(e){setErr("Error al guardar: "+e.message);}
     finally{setGuardando(false);}
@@ -1333,7 +1333,7 @@ function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usua
 
   return <CompraForm
     titulo="🛒 NUEVA COMPRA"
-    encInit={{fecha:hoy(),proveedorId:"",tipoBoleta:"Factura B",nroComprobante:"",usuario:usuario.nombre}}
+    encInit={{fecha:hoy(),proveedorId:"",tipoBoleta:"Factura B",nroComprobante:"",usuario:usuario.nombre,observaciones:""}}
     lineasInit={[{_k:1,articuloId:null,articuloNombre:"",articuloCodigo:"",detalle:"",cantidad:"",unidadMedida:"Unidad",montoTotal:"",descuento:""}]}
     impuestosInit={[{_k:1,concepto:"",monto:""}]}
     proveedores={proveedores} articulos={articulos}
@@ -1388,7 +1388,8 @@ function EditarCompra({compraOriginal,proveedores,articulos,setArticulos,setComp
       await sb.from("compras").eq("id",compraOriginal.id).update({
         fecha:enc.fecha,proveedor_id:+enc.proveedorId,proveedor_nombre:prov?.razonSocial||"",
         tipo_boleta:enc.tipoBoleta,nro_comprobante:enc.nroComprobante||"",
-        total_detalle:sub,total_impuestos:totalImp,total_compra:total,usuario_nombre:usuario.nombre
+        total_detalle:sub,total_impuestos:totalImp,total_compra:total,usuario_nombre:usuario.nombre,
+        observaciones:enc.observaciones||""
       });
       // 5. Reemplazar detalle
       await sb.from("compras_detalle").eq("compra_id",compraOriginal.id).delete();
@@ -1412,7 +1413,7 @@ function EditarCompra({compraOriginal,proveedores,articulos,setArticulos,setComp
       setCompras(p=>p.map(c=>c.id===compraOriginal.id?{
         ...c,fecha:enc.fecha,proveedorId:+enc.proveedorId,proveedorNombre:prov?.razonSocial||"",
         tipoBoleta:enc.tipoBoleta,nroComprobante:enc.nroComprobante||"",
-        totalDetalle:sub,totalImpuestos:totalImp,totalCompra:total,lineas:lineasGuardadas
+        totalDetalle:sub,totalImpuestos:totalImp,totalCompra:total,observaciones:enc.observaciones||"",lineas:lineasGuardadas
       }:c));
       setOk(true); setTimeout(onVolver,1500);
     }catch(e){setErr("Error al guardar: "+e.message);}
@@ -1421,7 +1422,7 @@ function EditarCompra({compraOriginal,proveedores,articulos,setArticulos,setComp
 
   return <CompraForm
     titulo={`✏️ EDITAR COMPRA #${compraOriginal.id}`}
-    encInit={{fecha:compraOriginal.fecha,proveedorId:String(compraOriginal.proveedorId),tipoBoleta:compraOriginal.tipoBoleta,nroComprobante:compraOriginal.nroComprobante||"",usuario:usuario.nombre}}
+    encInit={{fecha:compraOriginal.fecha,proveedorId:String(compraOriginal.proveedorId),tipoBoleta:compraOriginal.tipoBoleta,nroComprobante:compraOriginal.nroComprobante||"",usuario:usuario.nombre,observaciones:compraOriginal.observaciones||""}}
     lineasInit={compraOriginal.lineas.map((l,i)=>({
       _k:i+1,articuloId:l.articuloId,articuloNombre:l.articuloNombre,articuloCodigo:l.articuloCodigo,
       detalle:l.detalle||"",cantidad:l.cantidad,unidadMedida:l.unidadMedida||"Unidad",
