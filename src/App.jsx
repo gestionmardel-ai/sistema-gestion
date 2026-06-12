@@ -191,29 +191,49 @@ const MENU = [
 // ── LOGO FARO GESTION (SVG inline) ───────────────────────────────────────────
 function LogoFaro({size=72,showText=true,dark=false}){
   return(
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-      <svg width={size} height={size*1.2} viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-        {/* Lechuza - ojos */}
-        <circle cx="60" cy="70" r="28" fill="none" stroke="#0EA5E9" strokeWidth="5"/>
-        <circle cx="140" cy="70" r="28" fill="none" stroke="#0EA5E9" strokeWidth="5"/>
-        <circle cx="60" cy="75" r="12" fill="#0EA5E9"/>
-        <circle cx="140" cy="75" r="12" fill="#0EA5E9"/>
-        {/* Lechuza - cabeza */}
-        <path d="M 50 30 Q 40 40 40 70 Q 40 100 60 110 Q 80 100 80 70 Q 80 40 70 30 Z" fill="none" stroke="#0EA5E9" strokeWidth="5"/>
-        <path d="M 120 30 Q 110 40 110 70 Q 110 100 130 110 Q 150 100 150 70 Q 150 40 140 30 Z" fill="none" stroke="#0EA5E9" strokeWidth="5"/>
-        {/* Lechuza - pico */}
-        <path d="M 100 90 L 85 105 L 115 105 Z" fill="#0EA5E9"/>
-        {/* Lechuza - cuerpo */}
-        <ellipse cx="100" cy="160" rx="40" ry="55" fill="none" stroke="#0EA5E9" strokeWidth="5"/>
-        {/* Lechuza - ala derecha */}
-        <path d="M 135 140 Q 160 150 155 185" fill="none" stroke="#0EA5E9" strokeWidth="5" strokeLinecap="round"/>
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+      <svg width={size} height={size*1.25} viewBox="0 0 160 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Orejas */}
+        <path d="M 50 45 L 45 25 L 55 35" fill="none" stroke="#0EA5E9" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M 110 45 L 115 25 L 105 35" fill="none" stroke="#0EA5E9" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+        
+        {/* Cabeza principal */}
+        <circle cx="80" cy="75" r="45" fill="none" stroke="#0EA5E9" strokeWidth="3.5"/>
+        
+        {/* Ojos - círculos externos */}
+        <circle cx="60" cy="65" r="15" fill="none" stroke="#0EA5E9" strokeWidth="3"/>
+        <circle cx="100" cy="65" r="15" fill="none" stroke="#0EA5E9" strokeWidth="3"/>
+        
+        {/* Ojos - pupilas */}
+        <circle cx="60" cy="68" r="7" fill="#0EA5E9"/>
+        <circle cx="100" cy="68" r="7" fill="#0EA5E9"/>
+        
+        {/* Pico */}
+        <path d="M 80 90 L 75 100 L 85 100 Z" fill="#0EA5E9"/>
+        
+        {/* Cuerpo - superior */}
+        <ellipse cx="80" cy="135" rx="32" ry="42" fill="none" stroke="#0EA5E9" strokeWidth="3.5"/>
+        
+        {/* Ala izquierda - línea elegante */}
+        <path d="M 55 125 Q 35 140 40 165" fill="none" stroke="#0EA5E9" strokeWidth="3.5" strokeLinecap="round"/>
+        
+        {/* Ala derecha - línea elegante */}
+        <path d="M 105 125 Q 125 140 120 165" fill="none" stroke="#0EA5E9" strokeWidth="3.5" strokeLinecap="round"/>
+        
+        {/* Patas - líneas sutiles */}
+        <line x1="70" y1="175" x2="70" y2="192" stroke="#0EA5E9" strokeWidth="2.5" strokeLinecap="round"/>
+        <line x1="90" y1="175" x2="90" y2="192" stroke="#0EA5E9" strokeWidth="2.5" strokeLinecap="round"/>
+        
+        {/* Detalles - cejas/frente para más carácter */}
+        <path d="M 50 55 Q 60 50 70 55" fill="none" stroke="#0EA5E9" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+        <path d="M 90 55 Q 100 50 110 55" fill="none" stroke="#0EA5E9" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
       </svg>
       {showText&&(
-        <div style={{textAlign:"center",lineHeight:1.2}}>
-          <div style={{fontWeight:800,fontSize:16,letterSpacing:2,color:dark?"#fff":"#FFFFFF"}}>
+        <div style={{textAlign:"center",lineHeight:1.1}}>
+          <div style={{fontWeight:900,fontSize:16,letterSpacing:3,color:dark?"#fff":"#FFFFFF",textTransform:"uppercase"}}>
             ATENAI
           </div>
-          <div style={{fontSize:9,color:dark?"rgba(100,200,255,0.7)":"#0EA5E9",letterSpacing:2,textTransform:"uppercase"}}>Sabiduría en Gestión</div>
+          <div style={{fontSize:10,color:dark?"rgba(15,165,233,0.8)":"#0EA5E9",letterSpacing:1.5,textTransform:"uppercase",fontWeight:600,marginTop:2}}>Sabiduría en Gestión</div>
         </div>
       )}
     </div>
@@ -1418,7 +1438,6 @@ function EditarCompra({compraOriginal,proveedores,articulos,setArticulos,setComp
 function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,pagosProveedores}){
   const [vista,setVista]=useState("lista");
   const [sel,setSel]=useState(null);
-  const [buscar,setBuscar]=useState("");
   const [desde,setDesde]=useState("");
   const [hasta,setHasta]=useState("");
   const [provFiltro,setProvFiltro]=useState("");
@@ -1476,11 +1495,10 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,
 
   const filtradas=compras.filter(c=>{
     try{
-      const txtOk=(c.proveedorNombre||"").toLowerCase().includes(buscar.toLowerCase())||String(c.id||"").includes(buscar)||(c.tipoBoleta||"").toLowerCase().includes(buscar.toLowerCase())||(c.nroComprobante||"").includes(buscar);
       const desdeOk=!desde||c.fecha>=desde;
       const hastaOk=!hasta||c.fecha<=hasta;
       const provOk=!provFiltro||c.proveedorNombre===provFiltro;
-      return txtOk&&desdeOk&&hastaOk&&provOk;
+      return desdeOk&&hastaOk&&provOk;
     }catch(e){
       console.error("Error en filtrado:",e);
       return false;
@@ -1532,7 +1550,7 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,
     XLSX.writeFile(wb,`Compras_${fecha}.xlsx`);
   };
 
-  const limpiarFiltros=()=>{setBuscar("");setDesde("");setHasta("");setProvFiltro("");};
+  const limpiarFiltros=()=>{setDesde("");setHasta("");setProvFiltro("");};
 
   return(
     <div>
@@ -1732,7 +1750,6 @@ function NuevaVenta({clientes,articulos,setArticulos,ventas,setVentas,usuario,on
 function Ventas({clientes,articulos,setArticulos,ventas,setVentas,usuario}){
   const [vista,setVista]=useState("lista");
   const [sel,setSel]=useState(null);
-  const [buscar,setBuscar]=useState("");
   const [desde,setDesde]=useState("");
   const [hasta,setHasta]=useState("");
   const [cliFiltro,setCliFiltro]=useState("");
@@ -1770,11 +1787,10 @@ function Ventas({clientes,articulos,setArticulos,ventas,setVentas,usuario}){
 
   const filtradas=ventas.filter(v=>{
     try{
-      const txtOk=(v.clienteNombre||"").toLowerCase().includes(buscar.toLowerCase())||String(v.id||"").includes(buscar)||(v.nroComprobante||"").includes(buscar);
       const desdeOk=!desde||v.fecha>=desde;
       const hastaOk=!hasta||v.fecha<=hasta;
       const cliOk=!cliFiltro||v.clienteNombre===cliFiltro;
-      return txtOk&&desdeOk&&hastaOk&&cliOk;
+      return desdeOk&&hastaOk&&cliOk;
     }catch(e){
       console.error("Error en filtrado:",e);
       return false;
