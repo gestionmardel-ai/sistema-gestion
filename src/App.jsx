@@ -124,7 +124,7 @@ const css = `
   .btn { cursor: pointer; border: none; border-radius: 6px; padding: 9px 18px; font-family: 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 13px; transition: all 0.15s; letter-spacing: 0.2px; }
   .btn-primary { background: #1A6FA8; color: #fff; }
   .btn-primary:hover { background: #145880; }
-  .btn-naranja { background: #E8620A; color: #fff; }
+  .btn-naranja { background: #0EA5E9; color: #fff; }
   .btn-naranja:hover { background: #c9520a; }
   .btn-verde { background: #1A8F4A; color: #fff; }
   .btn-verde:hover { background: #157a3e; }
@@ -172,7 +172,7 @@ const fmtFechaCorta = d => d ? `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}
 
 const TIPOS = ["Factura A","Factura B","Factura C","Factura M","Ticket A","Ticket B","NO OFICIAL"];
 const MEDIOS_PAGO = ["EFECTIVO","TRANSFERENCIA","DÉBITO","CRÉDITO","CHEQUE","MERCADO PAGO","OTRO"];
-const VERSION = "2.0";
+const VERSION = "3.0";
 const UNIDADES_COMPRA = ["Unidad","Kg","g","Litro","ml","Metro","Caja","Cajón","Bidón","Bolsa","Resma","Par","Docena"];
 const MENU = [
   {id:"dash",icon:"🏠",label:"INICIO",roles:["admin","operador"]},
@@ -192,33 +192,28 @@ const MENU = [
 function LogoFaro({size=72,showText=true,dark=false}){
   return(
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-      <svg width={size} height={size*1.15} viewBox="0 0 80 92" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <line x1="40" y1="8" x2="40" y2="1" stroke="#FCD34D" strokeWidth="3" strokeLinecap="round"/>
-        <line x1="52" y1="12" x2="58" y2="5" stroke="#FCD34D" strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="28" y1="12" x2="22" y2="5" stroke="#FCD34D" strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="61" y1="20" x2="69" y2="15" stroke="#FCD34D" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-        <line x1="19" y1="20" x2="11" y2="15" stroke="#FCD34D" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-        <ellipse cx="40" cy="21" rx="11" ry="9" fill="#FCD34D" opacity="0.85"/>
-        <ellipse cx="40" cy="21" rx="6" ry="5" fill="#FFFDE7"/>
-        <rect x="27" y="26" width="26" height="10" rx="2" fill="#1A5276"/>
-        <rect x="29" y="28" width="8" height="6" rx="1" fill="#7DD3FC" opacity="0.9"/>
-        <rect x="43" y="28" width="8" height="6" rx="1" fill="#7DD3FC" opacity="0.9"/>
-        <rect x="24" y="35" width="32" height="3" rx="1.5" fill="#475569"/>
-        <polygon points="28,38 52,38 47,68 33,68" fill="white"/>
-        <polygon points="28,38 52,38 51,47 29,47" fill="#E8620A" opacity="0.9"/>
-        <polygon points="29.5,56 50.5,56 49,65 31,65" fill="#E8620A" opacity="0.9"/>
-        <rect x="26" y="68" width="28" height="13" rx="3" fill="#1A5276"/>
-        <rect x="23" y="65" width="34" height="5" rx="2" fill="#0F3460"/>
-        <rect x="35" y="71" width="10" height="10" rx="3" fill="#0A2540"/>
-        <path d="M8 83 Q20 79 32 83 Q44 87 56 83 Q66 79 74 83" stroke="#7DD3FC" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-        <path d="M4 88 Q18 84 32 88 Q46 92 60 88 Q70 84 78 88" stroke="#7DD3FC" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.5"/>
+      <svg width={size} height={size*1.2} viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Lechuza - ojos */}
+        <circle cx="60" cy="70" r="28" fill="none" stroke="#0EA5E9" strokeWidth="5"/>
+        <circle cx="140" cy="70" r="28" fill="none" stroke="#0EA5E9" strokeWidth="5"/>
+        <circle cx="60" cy="75" r="12" fill="#0EA5E9"/>
+        <circle cx="140" cy="75" r="12" fill="#0EA5E9"/>
+        {/* Lechuza - cabeza */}
+        <path d="M 50 30 Q 40 40 40 70 Q 40 100 60 110 Q 80 100 80 70 Q 80 40 70 30 Z" fill="none" stroke="#0EA5E9" strokeWidth="5"/>
+        <path d="M 120 30 Q 110 40 110 70 Q 110 100 130 110 Q 150 100 150 70 Q 150 40 140 30 Z" fill="none" stroke="#0EA5E9" strokeWidth="5"/>
+        {/* Lechuza - pico */}
+        <path d="M 100 90 L 85 105 L 115 105 Z" fill="#0EA5E9"/>
+        {/* Lechuza - cuerpo */}
+        <ellipse cx="100" cy="160" rx="40" ry="55" fill="none" stroke="#0EA5E9" strokeWidth="5"/>
+        {/* Lechuza - ala derecha */}
+        <path d="M 135 140 Q 160 150 155 185" fill="none" stroke="#0EA5E9" strokeWidth="5" strokeLinecap="round"/>
       </svg>
       {showText&&(
         <div style={{textAlign:"center",lineHeight:1.2}}>
-          <div style={{fontWeight:800,fontSize:14,letterSpacing:1,color:dark?"#fff":"#1A3A5C"}}>
-            FARO<span style={{color:"#E8620A"}}>GESTION</span>
+          <div style={{fontWeight:800,fontSize:16,letterSpacing:2,color:dark?"#fff":"#FFFFFF"}}>
+            ATENAI
           </div>
-          <div style={{fontSize:9,color:dark?"rgba(255,255,255,0.5)":"#94A3B8",letterSpacing:2,textTransform:"uppercase"}}>Sistema Comercial</div>
+          <div style={{fontSize:9,color:dark?"rgba(100,200,255,0.7)":"#0EA5E9",letterSpacing:2,textTransform:"uppercase"}}>Sabiduría en Gestión</div>
         </div>
       )}
     </div>
@@ -296,10 +291,10 @@ function Sidebar({usuario,page,setPage,onLogout,onRefresh}){
         {MENU.filter(m=>m.roles.includes(usuario.rol)).map(m=>(
           <button key={m.id} onClick={()=>setPage(m.id)} style={{
             display:"flex",alignItems:"center",gap:10,width:"100%",padding:"11px 16px",
-            background:page===m.id?"#E8620A":"transparent",border:"none",cursor:"pointer",
+            background:page===m.id?"#0EA5E9":"transparent",border:"none",cursor:"pointer",
             color:page===m.id?"#fff":"rgba(255,255,255,0.65)",
             fontFamily:"'Courier New',monospace",fontWeight:700,fontSize:12,
-            borderLeft:page===m.id?"3px solid #FCD34D":"3px solid transparent",textAlign:"left"
+            borderLeft:page===m.id?"3px solid #0EA5E9":"3px solid transparent",textAlign:"left"
           }}>
             <span>{m.icon}</span><span>{m.label}</span>
           </button>
@@ -308,7 +303,7 @@ function Sidebar({usuario,page,setPage,onLogout,onRefresh}){
       <div style={{padding:"14px",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
         <div style={{fontSize:9,color:"rgba(255,255,255,0.5)"}}>SESIÓN</div>
         <div style={{color:"#fff",fontWeight:700,fontSize:12}}>{usuario.nombre}</div>
-        <div style={{fontSize:9,color:"#E8620A",marginBottom:10}}>{usuario.rol.toUpperCase()}</div>
+        <div style={{fontSize:9,color:"#0EA5E9",marginBottom:10}}>{usuario.rol.toUpperCase()}</div>
         <button onClick={onRefresh} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.2)",color:"rgba(255,255,255,0.7)",borderRadius:6,padding:"7px 14px",cursor:"pointer",fontSize:11,width:"100%",marginBottom:6}}>🔄 ACTUALIZAR DATOS</button>
         <button className="btn btn-danger" onClick={onLogout} style={{width:"100%",fontSize:11}}>CERRAR SESIÓN</button>
       </div>
@@ -1198,7 +1193,7 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
         </div>
         <div className="fg full"><label>OBSERVACIONES</label><textarea rows={2} value={enc.observaciones||""} onChange={e=>setEnc(p=>({...p,observaciones:e.target.value}))} placeholder="Notas adicionales sobre la compra (opcional)"/></div>
       </div>
-      <div className="sec" style={{borderTop:"3px solid #E8620A"}}>
+      <div className="sec" style={{borderTop:"3px solid #0EA5E9"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
           <div className="sec-title" style={{margin:0}}>━━ DETALLE ━━</div>
           <button className="btn btn-primary" onClick={agregar} style={{fontSize:12}}>+ LÍNEA</button>
@@ -1247,9 +1242,9 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
               <strong style={{color:"#7C3AED"}}>$ {fmtP(totalImp)}</strong>
             </div>
           </div>
-          <div style={{display:"flex",justifyContent:"space-between",borderTop:"2px solid #E8620A",paddingTop:10}}>
+          <div style={{display:"flex",justifyContent:"space-between",borderTop:"2px solid #0EA5E9",paddingTop:10}}>
             <span style={{fontWeight:700,fontSize:14}}>TOTAL COMPRA:</span>
-            <strong style={{fontSize:20,color:"#E8620A"}}>$ {fmtP(total)}</strong>
+            <strong style={{fontSize:20,color:"#0EA5E9"}}>$ {fmtP(total)}</strong>
           </div>
         </div>
         <div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}>
@@ -1443,7 +1438,7 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,
             <div key={k}><div style={{fontSize:10,color:"#94A3B8",fontWeight:700}}>{k}</div><div style={{fontWeight:700}}>{v}</div></div>
           ))}
         </div></div>
-        {c.observaciones&&<div className="sec" style={{borderLeft:"3px solid #E8620A"}}><div className="sec-title">📝 OBSERVACIONES</div><div style={{color:"#1A5276",fontSize:14,lineHeight:1.6}}>{c.observaciones}</div></div>}
+        {c.observaciones&&<div className="sec" style={{borderLeft:"3px solid #0EA5E9"}}><div className="sec-title">📝 OBSERVACIONES</div><div style={{color:"#1A5276",fontSize:14,lineHeight:1.6}}>{c.observaciones}</div></div>}
         <div style={{background:"#fff",borderRadius:8,overflow:"auto",marginBottom:12,boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}>
           <table><thead><tr><th>ARTÍCULO</th><th>DETALLE/MARCA</th><th>CANT.</th><th>UNIDAD</th><th style={{textAlign:"right"}}>MONTO TOTAL $</th><th style={{textAlign:"right",color:"#FCA5A5"}}>DESC. $</th><th style={{textAlign:"right"}}>PRECIO FRACC. $</th></tr></thead>
             <tbody>{c.lineas.map((l,i)=><tr key={i}><td><b>{l.articuloCodigo}</b> {l.articuloNombre}</td><td style={{fontSize:12,color:"#5D6D7E"}}>{l.detalle||<span style={{color:"#BDC3C7"}}>—</span>}</td><td>{l.cantidad}</td><td style={{fontSize:12,color:"#7F8C8D"}}>{l.unidadMedida||"—"}</td><td style={{textAlign:"right",fontWeight:700}}>$ {fmtP(l.total)}</td><td style={{textAlign:"right",color:"#C0392B"}}>{l.descuento>0?"$ "+fmtP(l.descuento):<span style={{color:"#BDC3C7"}}>—</span>}</td><td style={{textAlign:"right",fontWeight:700,color:"#0891B2"}}>$ {fmtP(l.precioFraccion||l.precioUnitario)}</td></tr>)}</tbody>
@@ -1452,7 +1447,7 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,
         <div className="sec"><div style={{display:"flex",flexDirection:"column",gap:8,maxWidth:280,marginLeft:"auto"}}>
           <div style={{display:"flex",justifyContent:"space-between"}}><span>SUBTOTAL:</span><b>$ {fmtP(c.totalDetalle)}</b></div>
           <div style={{display:"flex",justifyContent:"space-between"}}><span>IMPUESTOS:</span><b>$ {fmtP(c.totalImpuestos)}</b></div>
-          <div style={{display:"flex",justifyContent:"space-between",borderTop:"2px solid #E8620A",paddingTop:8}}><span style={{fontWeight:700,fontSize:14}}>TOTAL:</span><b style={{fontSize:18,color:"#E8620A"}}>$ {fmtP(c.totalCompra)}</b></div>
+          <div style={{display:"flex",justifyContent:"space-between",borderTop:"2px solid #0EA5E9",paddingTop:8}}><span style={{fontWeight:700,fontSize:14}}>TOTAL:</span><b style={{fontSize:18,color:"#0EA5E9"}}>$ {fmtP(c.totalCompra)}</b></div>
         </div></div>
       </div>
     );
@@ -1544,7 +1539,9 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,
       <h2 style={{color:"#1A3A5C",marginBottom:14,fontSize:17,borderBottom:"3px solid #1A6FA8",paddingBottom:8}}>🛒 COMPRAS</h2>
       <div className="sec" style={{padding:12,marginBottom:12}}>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:10,alignItems:"end"}}>
+          {/* BUSCAR deshabilitado - comentado por performance
           <div className="fg" style={{margin:0}}><label>BUSCAR</label><input value={buscar} onChange={e=>setBuscar(e.target.value)} placeholder="Proveedor, ID, tipo..."/></div>
+          */}
           <div className="fg" style={{margin:0}}><label>FECHA DESDE</label><input type="date" value={desde} onChange={e=>setDesde(e.target.value)}/></div>
           <div className="fg" style={{margin:0}}><label>FECHA HASTA</label><input type="date" value={hasta} onChange={e=>setHasta(e.target.value)}/></div>
           <div className="fg" style={{margin:0}}><label>PROVEEDOR</label>
@@ -1560,7 +1557,7 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,
       </div>
       <div style={{display:"flex",gap:10,marginBottom:12,flexWrap:"wrap",alignItems:"center"}}>
         <div style={{flex:1,fontSize:13,color:"#1A3A5C"}}>
-          <strong>{filtradas.length}</strong> compra{filtradas.length!==1?"s":""} · Total: <strong style={{color:"#E8620A"}}>$ {fmtP(totalFiltrado)}</strong>
+          <strong>{filtradas.length}</strong> compra{filtradas.length!==1?"s":""} · Total: <strong style={{color:"#0EA5E9"}}>$ {fmtP(totalFiltrado)}</strong>
         </div>
         <button className="btn btn-outline" onClick={exportar} style={{borderColor:"#16A34A",color:"#16A34A",fontSize:12}}>📥 EXPORTAR EXCEL</button>
         <button className="btn btn-naranja" onClick={()=>setVista("nueva")}>+ NUEVA COMPRA</button>
@@ -1575,14 +1572,14 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,
                 <td style={{fontSize:11,whiteSpace:"nowrap"}}>{fmtFechaCorta(c.fecha)}</td>
                 <td>{c.proveedorNombre}</td>
                 <td><span className="badge" style={{background:"#2563A8",color:"#fff",fontSize:10}}>{c.tipoBoleta}</span></td>
-                <td style={{fontWeight:700,color:"#E8620A"}}>
+                <td style={{fontWeight:700,color:"#0EA5E9"}}>
                   $ {fmtP(c.totalCompra)}
                   {(()=>{
                     const pags=(pagosProveedores||[]).filter(p=>p.compraId===c.id);
                     const totalPag=Math.round(pags.reduce((s,p)=>s+p.monto,0)*100)/100;
                     const pend=Math.round((c.totalCompra-totalPag)*100)/100;
                     if(pend<=0) return <span className="badge" style={{background:"#16A34A",color:"#fff",fontSize:9,marginLeft:4}}>✓ SALDADA</span>;
-                    if(totalPag>0) return <span className="badge" style={{background:"#E8620A",color:"#fff",fontSize:9,marginLeft:4}}>PARCIAL</span>;
+                    if(totalPag>0) return <span className="badge" style={{background:"#0EA5E9",color:"#fff",fontSize:9,marginLeft:4}}>PARCIAL</span>;
                     return null;
                   })()}
                 </td>
@@ -1686,7 +1683,7 @@ function NuevaVenta({clientes,articulos,setArticulos,ventas,setVentas,usuario,on
         </div>
         <div className="fg full"><label>OBSERVACIONES</label><textarea rows={2} value={enc.observaciones||""} onChange={e=>setEnc(p=>({...p,observaciones:e.target.value}))} placeholder="Notas adicionales sobre la venta (opcional)"/></div>
       </div>
-      <div className="sec" style={{borderTop:"3px solid #E8620A"}}>
+      <div className="sec" style={{borderTop:"3px solid #0EA5E9"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
           <div className="sec-title" style={{margin:0}}>━━ DETALLE ━━</div>
           <button className="btn btn-primary" onClick={agregar} style={{fontSize:12}}>+ LÍNEA</button>
@@ -1837,7 +1834,9 @@ function Ventas({clientes,articulos,setArticulos,ventas,setVentas,usuario}){
       <h2 style={{color:"#1A3A5C",marginBottom:14,fontSize:17,borderBottom:"3px solid #1A8F4A",paddingBottom:8}}>💰 VENTAS</h2>
       <div className="sec" style={{padding:12,marginBottom:12}}>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:10,alignItems:"end"}}>
+          {/* BUSCAR deshabilitado - comentado por performance
           <div className="fg" style={{margin:0}}><label>BUSCAR</label><input value={buscar} onChange={e=>setBuscar(e.target.value)} placeholder="Cliente o ID..."/></div>
+          */}
           <div className="fg" style={{margin:0}}><label>FECHA DESDE</label><input type="date" value={desde} onChange={e=>setDesde(e.target.value)}/></div>
           <div className="fg" style={{margin:0}}><label>FECHA HASTA</label><input type="date" value={hasta} onChange={e=>setHasta(e.target.value)}/></div>
           <div className="fg" style={{margin:0}}><label>CLIENTE</label>
@@ -1905,7 +1904,7 @@ function Reportes({ventas,articulos,compras}){
   const vend=topVendidos(),rent=topRentables(),clis=topClientes(),evol=evolucion();
   const totalVentas=vf.reduce((s,v)=>s+(+v.totalVenta||0),0);
   const totalGanancia=vf.reduce((s,v)=>s+v.lineas.reduce((ls,l)=>ls+(+l.subtotal||0)-(+l.cantidad||0)*(+l.precioCosto||0),0),0);
-  const TABS=[{id:"vendidos",label:"🏆 MÁS VENDIDOS",color:"#2563A8"},{id:"rentables",label:"💎 MÁS RENTABLES",color:"#7C3AED"},{id:"clientes",label:"👥 MEJORES CLIENTES",color:"#E8620A"},{id:"evolucion",label:"📈 EVOLUCIÓN",color:"#16A34A"},{id:"movimientos",label:"📋 MOVIMIENTOS",color:"#0891B2"}];
+  const TABS=[{id:"vendidos",label:"🏆 MÁS VENDIDOS",color:"#2563A8"},{id:"rentables",label:"💎 MÁS RENTABLES",color:"#7C3AED"},{id:"clientes",label:"👥 MEJORES CLIENTES",color:"#0EA5E9"},{id:"evolucion",label:"📈 EVOLUCIÓN",color:"#16A34A"},{id:"movimientos",label:"📋 MOVIMIENTOS",color:"#0891B2"}];
   return(
     <div>
       <h2 style={{color:"#1A3A5C",marginBottom:14,fontSize:17,borderBottom:"3px solid #1A6FA8",paddingBottom:8}}>📊 REPORTES Y ESTADÍSTICAS</h2>
@@ -1916,7 +1915,7 @@ function Reportes({ventas,articulos,compras}){
         ))}
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:10,marginBottom:16}}>
-        {[{l:"Ventas",v:vf.length,i:"🛒",c:"#2563A8"},{l:"$ Facturado",v:"$ "+fmtP(totalVentas),i:"💵",c:"#16A34A"},{l:"$ Ganancia",v:"$ "+fmtP(totalGanancia),i:"📈",c:"#7C3AED"},{l:"Margen %",v:totalVentas>0?(totalGanancia/totalVentas*100).toFixed(1)+"%":"0%",i:"💎",c:"#E8620A"}].map(c=>(
+        {[{l:"Ventas",v:vf.length,i:"🛒",c:"#2563A8"},{l:"$ Facturado",v:"$ "+fmtP(totalVentas),i:"💵",c:"#16A34A"},{l:"$ Ganancia",v:"$ "+fmtP(totalGanancia),i:"📈",c:"#7C3AED"},{l:"Margen %",v:totalVentas>0?(totalGanancia/totalVentas*100).toFixed(1)+"%":"0%",i:"💎",c:"#0EA5E9"}].map(c=>(
           <div key={c.l} style={{background:"#fff",borderRadius:8,padding:"12px 14px",boxShadow:"0 2px 8px rgba(0,0,0,0.08)",borderLeft:`4px solid ${c.c}`}}>
             <div style={{fontSize:18}}>{c.i}</div><div style={{fontSize:15,fontWeight:700,color:c.c,marginTop:3}}>{c.v}</div><div style={{fontSize:10,color:"#94A3B8",fontWeight:700}}>{c.l}</div>
           </div>
@@ -1928,9 +1927,9 @@ function Reportes({ventas,articulos,compras}){
       {tab==="vendidos"&&(<div className="sec"><div className="sec-title">🏆 TOP 10 MÁS VENDIDOS</div>
         {!vend.length&&<div style={{textAlign:"center",color:"#94A3B8",padding:24}}>Sin datos para el período</div>}
         {vend.map((a,i)=>(<div key={a.id} style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,flexWrap:"wrap"}}>
-          <div style={{width:26,height:26,background:i<3?"#E8620A":"#2563A8",color:"#fff",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:12,flexShrink:0}}>{i+1}</div>
+          <div style={{width:26,height:26,background:i<3?"#0EA5E9":"#2563A8",color:"#fff",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:12,flexShrink:0}}>{i+1}</div>
           <div style={{minWidth:160,flex:2}}><div style={{fontWeight:700,fontSize:13}}>{a.nombre}</div><div style={{fontSize:11,color:"#94A3B8"}}>{a.codigo}</div></div>
-          <BarraH valor={a.cantidad} max={vend[0]?.cantidad||1} color={i<3?"#E8620A":"#2563A8"}/>
+          <BarraH valor={a.cantidad} max={vend[0]?.cantidad||1} color={i<3?"#0EA5E9":"#2563A8"}/>
           <div style={{minWidth:80,textAlign:"right",fontWeight:700,color:"#2563A8",fontSize:13}}>{a.cantidad} u.</div>
           <div style={{minWidth:110,textAlign:"right",fontWeight:700,color:"#16A34A",fontSize:13}}>$ {fmtP(a.totalVendido)}</div>
         </div>))}
@@ -1948,9 +1947,9 @@ function Reportes({ventas,articulos,compras}){
       {tab==="clientes"&&(<div className="sec"><div className="sec-title">👥 TOP 10 MEJORES CLIENTES</div>
         {!clis.length&&<div style={{textAlign:"center",color:"#94A3B8",padding:24}}>Sin datos para el período</div>}
         {clis.map((c,i)=>(<div key={c.id} style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,flexWrap:"wrap"}}>
-          <div style={{width:26,height:26,background:i<3?"#E8620A":"#2563A8",color:"#fff",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:12,flexShrink:0}}>{i+1}</div>
+          <div style={{width:26,height:26,background:i<3?"#0EA5E9":"#2563A8",color:"#fff",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:12,flexShrink:0}}>{i+1}</div>
           <div style={{minWidth:160,flex:2}}><div style={{fontWeight:700,fontSize:13}}>{c.nombre}</div><div style={{fontSize:11,color:"#94A3B8"}}>{c.cantVentas} compra{c.cantVentas!==1?"s":""}</div></div>
-          <BarraH valor={c.totalComprado} max={clis[0]?.totalComprado||1} color={i<3?"#E8620A":"#2563A8"}/>
+          <BarraH valor={c.totalComprado} max={clis[0]?.totalComprado||1} color={i<3?"#0EA5E9":"#2563A8"}/>
           <div style={{minWidth:120,textAlign:"right",fontWeight:700,color:"#16A34A",fontSize:13}}>$ {fmtP(c.totalComprado)}</div>
         </div>))}
       </div>)}
@@ -2078,7 +2077,7 @@ function MovimientosArticulo({articulos,compras,ventas,artBuscar,setArtBuscar,ar
           <div className="sec" style={{borderTop:"3px solid #1A3A5C"}}>
             <div className="sec-title">📦 {artSel.nombre} — {artSel.codigo}</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:10}}>
-              {[{l:"Stock actual",v:artSel.stock+" u.",c:"#1A3A5C",i:"📦"},{l:"Total comprado",v:totalComprado+" u.",c:"#E8620A",i:"🛒"},{l:"Total vendido",v:totalVendido+" u.",c:"#2563A8",i:"💰"},{l:"Costo total $",v:"$ "+fmtP(costoTotal),c:"#B45309",i:"📉"},{l:"Venta total $",v:"$ "+fmtP(ventaTotal),c:"#16A34A",i:"📈"},{l:"Ganancia $",v:"$ "+fmtP(gananciaTotal),c:"#0891B2",i:"💎"}].map(c=>(
+              {[{l:"Stock actual",v:artSel.stock+" u.",c:"#1A3A5C",i:"📦"},{l:"Total comprado",v:totalComprado+" u.",c:"#0EA5E9",i:"🛒"},{l:"Total vendido",v:totalVendido+" u.",c:"#2563A8",i:"💰"},{l:"Costo total $",v:"$ "+fmtP(costoTotal),c:"#B45309",i:"📉"},{l:"Venta total $",v:"$ "+fmtP(ventaTotal),c:"#16A34A",i:"📈"},{l:"Ganancia $",v:"$ "+fmtP(gananciaTotal),c:"#0891B2",i:"💎"}].map(c=>(
                 <div key={c.l} style={{background:"#F8FAFC",borderRadius:8,padding:"12px 14px",borderLeft:`4px solid ${c.c}`}}>
                   <div style={{fontSize:18}}>{c.i}</div><div style={{fontSize:14,fontWeight:700,color:c.c,marginTop:3}}>{c.v}</div><div style={{fontSize:10,color:"#94A3B8",fontWeight:700}}>{c.l}</div>
                 </div>
@@ -2086,18 +2085,18 @@ function MovimientosArticulo({articulos,compras,ventas,artBuscar,setArtBuscar,ar
             </div>
           </div>
           <div style={{display:"flex",gap:8,marginBottom:12}}>
-            <button onClick={()=>setMovTab("compras")} className="btn" style={{fontSize:12,padding:"8px 18px",background:movTab==="compras"?"#E8620A":"#fff",color:movTab==="compras"?"#fff":"#E8620A",border:"2px solid #E8620A"}}>🛒 COMPRAS ({lineasCompra.length})</button>
+            <button onClick={()=>setMovTab("compras")} className="btn" style={{fontSize:12,padding:"8px 18px",background:movTab==="compras"?"#0EA5E9":"#fff",color:movTab==="compras"?"#fff":"#0EA5E9",border:"2px solid #0EA5E9"}}>🛒 COMPRAS ({lineasCompra.length})</button>
             <button onClick={()=>setMovTab("ventas")} className="btn" style={{fontSize:12,padding:"8px 18px",background:movTab==="ventas"?"#16A34A":"#fff",color:movTab==="ventas"?"#fff":"#16A34A",border:"2px solid #16A34A"}}>💰 VENTAS ({lineasVenta.length})</button>
           </div>
           {movTab==="compras"&&(
             <div style={{background:"#fff",borderRadius:8,overflow:"auto",boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}>
               <table>
-                <thead><tr style={{background:"#E8620A"}}><th>ID</th><th>FECHA</th><th>PROVEEDOR</th><th>TIPO BOLETA</th><th>CANTIDAD</th><th>P. UNIT. $</th><th>TOTAL $</th><th>USUARIO</th></tr></thead>
+                <thead><tr style={{background:"#0EA5E9"}}><th>ID</th><th>FECHA</th><th>PROVEEDOR</th><th>TIPO BOLETA</th><th>CANTIDAD</th><th>P. UNIT. $</th><th>TOTAL $</th><th>USUARIO</th></tr></thead>
                 <tbody>
-                  {lineasCompra.map((m,i)=>(<tr key={i}><td><b>#{m.id}</b></td><td>{m.fecha}</td><td>{m.contraparte}</td><td><span className="badge" style={{background:"#2563A8",color:"#fff"}}>{m.tipoBoleta}</span></td><td style={{fontWeight:700,color:"#E8620A"}}>{m.cantidad} u.</td><td>$ {fmtP(m.precioUnit)}</td><td style={{fontWeight:700}}>$ {fmtP(m.total)}</td><td style={{fontSize:11,color:"#94A3B8"}}>{m.usuario}</td></tr>))}
+                  {lineasCompra.map((m,i)=>(<tr key={i}><td><b>#{m.id}</b></td><td>{m.fecha}</td><td>{m.contraparte}</td><td><span className="badge" style={{background:"#2563A8",color:"#fff"}}>{m.tipoBoleta}</span></td><td style={{fontWeight:700,color:"#0EA5E9"}}>{m.cantidad} u.</td><td>$ {fmtP(m.precioUnit)}</td><td style={{fontWeight:700}}>$ {fmtP(m.total)}</td><td style={{fontSize:11,color:"#94A3B8"}}>{m.usuario}</td></tr>))}
                   {!lineasCompra.length&&(<tr><td colSpan={8} style={{textAlign:"center",color:"#94A3B8",padding:24}}>Sin compras registradas para este artículo</td></tr>)}
                 </tbody>
-                {lineasCompra.length>0&&(<tfoot><tr style={{background:"#FFF7ED"}}><td colSpan={4} style={{fontWeight:700,color:"#E8620A",padding:"8px 12px"}}>TOTALES</td><td style={{fontWeight:700,color:"#E8620A",padding:"8px 12px"}}>{totalComprado} u.</td><td></td><td style={{fontWeight:700,color:"#E8620A",padding:"8px 12px"}}>$ {fmtP(costoTotal)}</td><td></td></tr></tfoot>)}
+                {lineasCompra.length>0&&(<tfoot><tr style={{background:"#FFF7ED"}}><td colSpan={4} style={{fontWeight:700,color:"#0EA5E9",padding:"8px 12px"}}>TOTALES</td><td style={{fontWeight:700,color:"#0EA5E9",padding:"8px 12px"}}>{totalComprado} u.</td><td></td><td style={{fontWeight:700,color:"#0EA5E9",padding:"8px 12px"}}>$ {fmtP(costoTotal)}</td><td></td></tr></tfoot>)}
               </table>
             </div>
           )}
@@ -2149,7 +2148,7 @@ function UsuariosPage({usuarios,setUsuarios}){
       <div style={{display:"flex",justifyContent:"flex-end",marginBottom:12}}><button className="btn btn-naranja" onClick={nuevo}>+ NUEVO USUARIO</button></div>
       <div style={{background:"#fff",borderRadius:8,overflow:"auto",boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}>
         <table><thead><tr><th>USUARIO</th><th>NOMBRE</th><th>ROL</th><th></th></tr></thead>
-          <tbody>{usuarios.map(u=>(<tr key={u.id}><td><b>{u.usuario}</b></td><td>{u.nombre}</td><td><span className="badge" style={{background:u.rol==="admin"?"#E8620A":"#2563A8",color:"#fff"}}>{u.rol.toUpperCase()}</span></td><td><button className="btn btn-outline" onClick={()=>editar(u)} style={{fontSize:11,padding:"4px 10px"}}>✏️</button></td></tr>))}</tbody>
+          <tbody>{usuarios.map(u=>(<tr key={u.id}><td><b>{u.usuario}</b></td><td>{u.nombre}</td><td><span className="badge" style={{background:u.rol==="admin"?"#0EA5E9":"#2563A8",color:"#fff"}}>{u.rol.toUpperCase()}</span></td><td><button className="btn btn-outline" onClick={()=>editar(u)} style={{fontSize:11,padding:"4px 10px"}}>✏️</button></td></tr>))}</tbody>
         </table>
       </div>
       {modal&&(<Modal title={modal==="n"?"NUEVO USUARIO":"EDITAR USUARIO"} onClose={()=>setModal(null)} w={400}>
@@ -2297,7 +2296,7 @@ function LibroMovimientos({compras,ventas,articulos}){
         </div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:10,marginBottom:12}}>
-        {[{l:"Comprobantes",v:porDoc.length,c:"#1A3A5C",i:"📋"},{l:"Líneas compras",v:totCompras.length,c:"#E8620A",i:"🛒"},{l:"$ Total comprado",v:"$ "+fmtP(sumCompras),c:"#B45309",i:"📉"},{l:"Líneas ventas",v:totVentas.length,c:"#16A34A",i:"💰"},{l:"$ Total vendido",v:"$ "+fmtP(sumVentas),c:"#16A34A",i:"📈"},{l:"$ Ganancia",v:"$ "+fmtP(sumGanancia),c:"#0891B2",i:"💎"}].map(c=>(<div key={c.l} style={{background:"#fff",borderRadius:8,padding:"11px 13px",boxShadow:"0 2px 8px rgba(0,0,0,0.07)",borderLeft:`4px solid ${c.c}`}}><div style={{fontSize:17}}>{c.i}</div><div style={{fontSize:14,fontWeight:700,color:c.c,marginTop:3}}>{c.v}</div><div style={{fontSize:10,color:"#94A3B8",fontWeight:700}}>{c.l}</div></div>))}
+        {[{l:"Comprobantes",v:porDoc.length,c:"#1A3A5C",i:"📋"},{l:"Líneas compras",v:totCompras.length,c:"#0EA5E9",i:"🛒"},{l:"$ Total comprado",v:"$ "+fmtP(sumCompras),c:"#B45309",i:"📉"},{l:"Líneas ventas",v:totVentas.length,c:"#16A34A",i:"💰"},{l:"$ Total vendido",v:"$ "+fmtP(sumVentas),c:"#16A34A",i:"📈"},{l:"$ Ganancia",v:"$ "+fmtP(sumGanancia),c:"#0891B2",i:"💎"}].map(c=>(<div key={c.l} style={{background:"#fff",borderRadius:8,padding:"11px 13px",boxShadow:"0 2px 8px rgba(0,0,0,0.07)",borderLeft:`4px solid ${c.c}`}}><div style={{fontSize:17}}>{c.i}</div><div style={{fontSize:14,fontWeight:700,color:c.c,marginTop:3}}>{c.v}</div><div style={{fontSize:10,color:"#94A3B8",fontWeight:700}}>{c.l}</div></div>))}
       </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:10}}>
         <div style={{display:"flex",gap:6}}>
@@ -2310,23 +2309,23 @@ function LibroMovimientos({compras,ventas,articulos}){
         <div>
           {!porDoc.length&&(<div style={{textAlign:"center",color:"#94A3B8",padding:40,background:"#fff",borderRadius:8,boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}>Sin movimientos para los filtros seleccionados</div>)}
           {porDoc.map((doc,di)=>(
-            <div key={di} style={{background:"#fff",borderRadius:8,marginBottom:14,boxShadow:"0 2px 8px rgba(0,0,0,0.08)",overflow:"hidden",borderLeft:`4px solid ${doc.tipo==="COMPRA"?"#E8620A":"#16A34A"}`}}>
+            <div key={di} style={{background:"#fff",borderRadius:8,marginBottom:14,boxShadow:"0 2px 8px rgba(0,0,0,0.08)",overflow:"hidden",borderLeft:`4px solid ${doc.tipo==="COMPRA"?"#0EA5E9":"#16A34A"}`}}>
               <div style={{background:doc.tipo==="COMPRA"?"rgba(232,98,10,0.06)":"rgba(22,163,74,0.06)",padding:"12px 16px",borderBottom:"1px solid #E2E8F0"}}>
                 <div style={{display:"flex",flexWrap:"wrap",gap:16,alignItems:"center"}}>
-                  <span className="badge" style={{background:doc.tipo==="COMPRA"?"#E8620A":"#16A34A",color:"#fff",fontSize:11,padding:"3px 10px"}}>{doc.tipo==="COMPRA"?"🛒 COMPRA":"💰 VENTA"}</span>
+                  <span className="badge" style={{background:doc.tipo==="COMPRA"?"#0EA5E9":"#16A34A",color:"#fff",fontSize:11,padding:"3px 10px"}}>{doc.tipo==="COMPRA"?"🛒 COMPRA":"💰 VENTA"}</span>
                   <div style={{display:"flex",flexWrap:"wrap",gap:20,flex:1}}>
                     {[["N° INTERNO","#"+doc.docId],["NRO. COMPROBANTE",doc.nroComprobante||"—"],["FECHA",doc.fecha],["TIPO BOLETA",doc.tipoBoleta||"—"],[doc.tipo==="COMPRA"?"PROVEEDOR":"CLIENTE",doc.contraparte],["USUARIO",doc.usuario]].map(([k,v])=>(<div key={k}><div style={{fontSize:9,color:"#94A3B8",fontWeight:700,letterSpacing:0.5}}>{k}</div><div style={{fontSize:13,fontWeight:700,color:"#1A3A5C"}}>{v}</div></div>))}
                   </div>
-                  <div style={{textAlign:"right"}}><div style={{fontSize:9,color:"#94A3B8",fontWeight:700}}>TOTAL COMPROBANTE</div><div style={{fontSize:18,fontWeight:700,color:doc.tipo==="COMPRA"?"#E8620A":"#16A34A"}}>$ {fmtP(doc.totalDoc)}</div></div>
+                  <div style={{textAlign:"right"}}><div style={{fontSize:9,color:"#94A3B8",fontWeight:700}}>TOTAL COMPROBANTE</div><div style={{fontSize:18,fontWeight:700,color:doc.tipo==="COMPRA"?"#0EA5E9":"#16A34A"}}>$ {fmtP(doc.totalDoc)}</div></div>
                 </div>
               </div>
               <div style={{overflowX:"auto"}}>
                 <table>
                   <thead><tr style={{background:"#F8FAFC"}}><th style={{color:"#64748B",fontWeight:700,fontSize:11}}>CÓDIGO</th><th style={{color:"#64748B",fontWeight:700,fontSize:11}}>ARTÍCULO</th><th style={{color:"#64748B",fontWeight:700,fontSize:11,textAlign:"right"}}>CANT.</th>{doc.tipo==="VENTA"&&<th style={{color:"#64748B",fontWeight:700,fontSize:11,textAlign:"right"}}>P. COSTO $</th>}<th style={{color:"#64748B",fontWeight:700,fontSize:11,textAlign:"right"}}>P. UNIT. $</th><th style={{color:"#64748B",fontWeight:700,fontSize:11,textAlign:"right"}}>TOTAL $</th>{doc.tipo==="VENTA"&&<th style={{color:"#64748B",fontWeight:700,fontSize:11,textAlign:"right"}}>GANANCIA $</th>}</tr></thead>
                   <tbody>
-                    {doc.lineas.map((l,li)=>(<tr key={li}><td style={{fontFamily:"monospace",fontSize:11,color:"#64748B"}}>{l.articuloCodigo}</td><td style={{fontSize:13}}>{l.articuloNombre}</td><td style={{textAlign:"right",fontWeight:700}}>{l.cantidad}</td>{doc.tipo==="VENTA"&&<td style={{textAlign:"right",color:"#94A3B8",fontSize:12}}>$ {fmtP(l.precioCosto)}</td>}<td style={{textAlign:"right"}}>$ {fmtP(l.precioUnitario)}</td><td style={{textAlign:"right",fontWeight:700,color:doc.tipo==="COMPRA"?"#E8620A":"#16A34A"}}>$ {fmtP(l.subtotal)}</td>{doc.tipo==="VENTA"&&<td style={{textAlign:"right",fontWeight:700,color:"#0891B2"}}>$ {fmtP(l.ganancia)}</td>}</tr>))}
+                    {doc.lineas.map((l,li)=>(<tr key={li}><td style={{fontFamily:"monospace",fontSize:11,color:"#64748B"}}>{l.articuloCodigo}</td><td style={{fontSize:13}}>{l.articuloNombre}</td><td style={{textAlign:"right",fontWeight:700}}>{l.cantidad}</td>{doc.tipo==="VENTA"&&<td style={{textAlign:"right",color:"#94A3B8",fontSize:12}}>$ {fmtP(l.precioCosto)}</td>}<td style={{textAlign:"right"}}>$ {fmtP(l.precioUnitario)}</td><td style={{textAlign:"right",fontWeight:700,color:doc.tipo==="COMPRA"?"#0EA5E9":"#16A34A"}}>$ {fmtP(l.subtotal)}</td>{doc.tipo==="VENTA"&&<td style={{textAlign:"right",fontWeight:700,color:"#0891B2"}}>$ {fmtP(l.ganancia)}</td>}</tr>))}
                   </tbody>
-                  {doc.lineas.length>1&&(<tfoot><tr style={{background:"#F8FAFC",fontWeight:700}}><td colSpan={doc.tipo==="VENTA"?2:2} style={{padding:"7px 12px",color:"#1A3A5C",fontSize:12}}>SUBTOTALES</td><td style={{textAlign:"right",padding:"7px 12px"}}>{doc.lineas.reduce((s,l)=>s+l.cantidad,0)}</td>{doc.tipo==="VENTA"&&<td></td>}<td></td><td style={{textAlign:"right",padding:"7px 12px",color:doc.tipo==="COMPRA"?"#E8620A":"#16A34A"}}>$ {fmtP(doc.lineas.reduce((s,l)=>s+l.subtotal,0))}</td>{doc.tipo==="VENTA"&&<td style={{textAlign:"right",padding:"7px 12px",color:"#0891B2"}}>$ {fmtP(doc.lineas.reduce((s,l)=>s+l.ganancia,0))}</td>}</tr></tfoot>)}
+                  {doc.lineas.length>1&&(<tfoot><tr style={{background:"#F8FAFC",fontWeight:700}}><td colSpan={doc.tipo==="VENTA"?2:2} style={{padding:"7px 12px",color:"#1A3A5C",fontSize:12}}>SUBTOTALES</td><td style={{textAlign:"right",padding:"7px 12px"}}>{doc.lineas.reduce((s,l)=>s+l.cantidad,0)}</td>{doc.tipo==="VENTA"&&<td></td>}<td></td><td style={{textAlign:"right",padding:"7px 12px",color:doc.tipo==="COMPRA"?"#0EA5E9":"#16A34A"}}>$ {fmtP(doc.lineas.reduce((s,l)=>s+l.subtotal,0))}</td>{doc.tipo==="VENTA"&&<td style={{textAlign:"right",padding:"7px 12px",color:"#0891B2"}}>$ {fmtP(doc.lineas.reduce((s,l)=>s+l.ganancia,0))}</td>}</tr></tfoot>)}
                 </table>
               </div>
             </div>
@@ -2338,7 +2337,7 @@ function LibroMovimientos({compras,ventas,articulos}){
           <table>
             <thead><tr><th>FECHA</th><th>TIPO</th><th>N° DOC</th><th>NRO. COMPROBANTE</th><th>TIPO BOLETA</th><th>PROV. / CLIENTE</th><th>CÓDIGO</th><th>ARTÍCULO</th><th style={{textAlign:"right"}}>CANT.</th><th style={{textAlign:"right"}}>P. COSTO $</th><th style={{textAlign:"right"}}>P. UNIT. $</th><th style={{textAlign:"right"}}>TOTAL $</th><th style={{textAlign:"right"}}>GANANCIA $</th><th style={{textAlign:"right"}}>TOTAL COMP. $</th><th>USUARIO</th></tr></thead>
             <tbody>
-              {filtrados.map((m,i)=>(<tr key={i} style={{background:m.tipo==="COMPRA"?"rgba(232,98,10,0.03)":"rgba(22,163,74,0.03)"}}><td style={{whiteSpace:"nowrap"}}>{m.fecha}</td><td><span className="badge" style={{background:m.tipo==="COMPRA"?"#E8620A":"#16A34A",color:"#fff",fontSize:10}}>{m.tipo}</span></td><td><b>#{m.docId}</b></td><td style={{fontSize:11}}>{m.nroComprobante||<span style={{color:"#94A3B8"}}>—</span>}</td><td style={{fontSize:11,color:"#94A3B8"}}>{m.tipoBoleta||"—"}</td><td style={{maxWidth:140,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.contraparte}</td><td style={{fontFamily:"monospace",fontSize:11}}>{m.articuloCodigo}</td><td style={{maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.articuloNombre}</td><td style={{textAlign:"right",fontWeight:700}}>{m.cantidad}</td><td style={{textAlign:"right",color:"#94A3B8",fontSize:12}}>{m.tipo==="VENTA"?"$ "+fmtP(m.precioCosto):"—"}</td><td style={{textAlign:"right"}}>$ {fmtP(m.precioUnitario)}</td><td style={{textAlign:"right",fontWeight:700,color:m.tipo==="COMPRA"?"#E8620A":"#16A34A"}}>$ {fmtP(m.subtotal)}</td><td style={{textAlign:"right",fontWeight:700,color:"#0891B2"}}>{m.tipo==="VENTA"?"$ "+fmtP(m.ganancia):"—"}</td><td style={{textAlign:"right",fontWeight:700,color:"#64748B"}}>$ {fmtP(m.totalDoc)}</td><td style={{fontSize:11,color:"#94A3B8"}}>{m.usuario}</td></tr>))}
+              {filtrados.map((m,i)=>(<tr key={i} style={{background:m.tipo==="COMPRA"?"rgba(232,98,10,0.03)":"rgba(22,163,74,0.03)"}}><td style={{whiteSpace:"nowrap"}}>{m.fecha}</td><td><span className="badge" style={{background:m.tipo==="COMPRA"?"#0EA5E9":"#16A34A",color:"#fff",fontSize:10}}>{m.tipo}</span></td><td><b>#{m.docId}</b></td><td style={{fontSize:11}}>{m.nroComprobante||<span style={{color:"#94A3B8"}}>—</span>}</td><td style={{fontSize:11,color:"#94A3B8"}}>{m.tipoBoleta||"—"}</td><td style={{maxWidth:140,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.contraparte}</td><td style={{fontFamily:"monospace",fontSize:11}}>{m.articuloCodigo}</td><td style={{maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.articuloNombre}</td><td style={{textAlign:"right",fontWeight:700}}>{m.cantidad}</td><td style={{textAlign:"right",color:"#94A3B8",fontSize:12}}>{m.tipo==="VENTA"?"$ "+fmtP(m.precioCosto):"—"}</td><td style={{textAlign:"right"}}>$ {fmtP(m.precioUnitario)}</td><td style={{textAlign:"right",fontWeight:700,color:m.tipo==="COMPRA"?"#0EA5E9":"#16A34A"}}>$ {fmtP(m.subtotal)}</td><td style={{textAlign:"right",fontWeight:700,color:"#0891B2"}}>{m.tipo==="VENTA"?"$ "+fmtP(m.ganancia):"—"}</td><td style={{textAlign:"right",fontWeight:700,color:"#64748B"}}>$ {fmtP(m.totalDoc)}</td><td style={{fontSize:11,color:"#94A3B8"}}>{m.usuario}</td></tr>))}
               {!filtrados.length&&(<tr><td colSpan={15} style={{textAlign:"center",color:"#94A3B8",padding:32,fontSize:14}}>Sin movimientos para los filtros seleccionados</td></tr>)}
             </tbody>
             {filtrados.length>0&&(<tfoot><tr style={{background:"#F8FAFC",fontWeight:700}}><td colSpan={8} style={{padding:"9px 12px",color:"#1A3A5C"}}>TOTALES ({filtrados.length} líneas · {porDoc.length} comprobantes)</td><td style={{textAlign:"right",padding:"9px 12px"}}>{filtrados.reduce((s,m)=>s+m.cantidad,0)}</td><td></td><td></td><td style={{textAlign:"right",padding:"9px 12px",color:"#1A3A5C"}}>$ {fmtP(filtrados.reduce((s,m)=>s+m.subtotal,0))}</td><td style={{textAlign:"right",padding:"9px 12px",color:"#0891B2"}}>$ {fmtP(sumGanancia)}</td><td></td><td></td></tr></tfoot>)}
@@ -2469,7 +2468,7 @@ function CuentaCorriente({clientes,proveedores,ventas,compras,pagosClientes,setP
       })
     :[];
   const esCliente=tab==="clientes";
-  const colorTab=esCliente?"#16A34A":"#E8620A";
+  const colorTab=esCliente?"#16A34A":"#0EA5E9";
 
   // ── Vista detalle de entidad ──────────────────
   if(selEntidad){
@@ -2521,8 +2520,8 @@ function CuentaCorriente({clientes,proveedores,ventas,compras,pagosClientes,setP
                   <tr key={i} style={{background:m.tipo==="COBRO"||m.tipo==="PAGO"?"rgba(22,163,74,0.05)":"rgba(26,111,168,0.03)"}}>
                     <td style={{fontSize:11,whiteSpace:"nowrap"}}>{fmtFechaCorta(m.fecha)}</td>
                     <td>
-                      <span className="badge" style={{fontSize:10,background:m.tipo==="VENTA"?"#16A34A":m.tipo==="COMPRA"?"#E8620A":m.tipo==="COBRO"?"#0891B2":"#7C3AED",color:"#fff"}}>{m.tipo}</span>
-                      {m.estadoDoc&&<span className="badge" style={{fontSize:9,marginLeft:3,background:m.estadoDoc==="SALDADO"?"#16A34A":m.estadoDoc==="PARCIAL"?"#E8620A":"#DC2626",color:"#fff"}}>{m.estadoDoc}</span>}
+                      <span className="badge" style={{fontSize:10,background:m.tipo==="VENTA"?"#16A34A":m.tipo==="COMPRA"?"#0EA5E9":m.tipo==="COBRO"?"#0891B2":"#7C3AED",color:"#fff"}}>{m.tipo}</span>
+                      {m.estadoDoc&&<span className="badge" style={{fontSize:9,marginLeft:3,background:m.estadoDoc==="SALDADO"?"#16A34A":m.estadoDoc==="PARCIAL"?"#0EA5E9":"#DC2626",color:"#fff"}}>{m.estadoDoc}</span>}
                     </td>
                     <td style={{fontSize:12,color:"#1A5276",fontWeight:600}}>
                       {m.ref}
@@ -2578,7 +2577,7 @@ function CuentaCorriente({clientes,proveedores,ventas,compras,pagosClientes,setP
                       const pendiente=Math.round((totalDoc-totalPagado)*100)/100;
                       const pct=totalDoc>0?Math.min(100,totalPagado/totalDoc*100):0;
                       const estado=pendiente<=0?"SALDADO":totalPagado>0?"PARCIAL":"PENDIENTE";
-                      const estadoColor=estado==="SALDADO"?"#16A34A":estado==="PARCIAL"?"#E8620A":"#DC2626";
+                      const estadoColor=estado==="SALDADO"?"#16A34A":estado==="PARCIAL"?"#0EA5E9":"#DC2626";
                       return(
                         <tr key={doc.id} style={{background:estado==="SALDADO"?"rgba(22,163,74,0.04)":estado==="PARCIAL"?"rgba(232,98,10,0.04)":"rgba(220,38,38,0.04)"}}>
                           <td style={{fontSize:11,whiteSpace:"nowrap"}}>{fmtFechaCorta(doc.fecha)}</td>
@@ -2618,7 +2617,7 @@ function CuentaCorriente({clientes,proveedores,ventas,compras,pagosClientes,setP
                 </table>
               </div>
               {totalPagosLibres>0&&(
-                <div style={{padding:"10px 14px",background:"#FFF7ED",borderRadius:6,borderLeft:"3px solid #E8620A",fontSize:12,color:"#92400E"}}>
+                <div style={{padding:"10px 14px",background:"#FFF7ED",borderRadius:6,borderLeft:"3px solid #0EA5E9",fontSize:12,color:"#92400E"}}>
                   ⚠️ <strong>$ {fmtP(totalPagosLibres)}</strong> en pagos no asignados a un comprobante específico (aparecen en el libro mayor pero no en esta vista).
                 </div>
               )}
@@ -2737,7 +2736,7 @@ function CuentaCorriente({clientes,proveedores,ventas,compras,pagosClientes,setP
               </div>
             </div>
             <div style={{marginTop:12,padding:"10px 14px",background:"#F0FDF4",borderRadius:6,fontSize:12,color:"#16A34A",borderLeft:"3px solid #16A34A"}}>
-              <strong>Saldo actual:</strong> $ {fmtP(saldoActual)} · Después del pago: <strong style={{color:saldoActual-(parseFloat(montoInput)||0)<=0?"#16A34A":"#E8620A"}}>$ {fmtP(saldoActual-(parseFloat(montoInput)||0))}</strong>
+              <strong>Saldo actual:</strong> $ {fmtP(saldoActual)} · Después del pago: <strong style={{color:saldoActual-(parseFloat(montoInput)||0)<=0?"#16A34A":"#0EA5E9"}}>$ {fmtP(saldoActual-(parseFloat(montoInput)||0))}</strong>
             </div>
             <div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:16}}>
               <button className="btn btn-outline" onClick={()=>setModalPago(false)} disabled={guardando}>CANCELAR</button>
@@ -2765,7 +2764,7 @@ function CuentaCorriente({clientes,proveedores,ventas,compras,pagosClientes,setP
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(165px,1fr))",gap:10,marginBottom:16}}>
         {[
           {l:"Total a cobrar",v:"$ "+fmtP(totalACobrar),c:"#DC2626",i:"⚠️",sub:"Saldo deudor clientes"},
-          {l:"Total a pagar",v:"$ "+fmtP(totalAPagar),c:"#E8620A",i:"💸",sub:"Saldo adeudado proveed."},
+          {l:"Total a pagar",v:"$ "+fmtP(totalAPagar),c:"#0EA5E9",i:"💸",sub:"Saldo adeudado proveed."},
           {l:"Clientes con saldo",v:balancesClientes.filter(c=>c.saldo>0).length+" cliente"+(balancesClientes.filter(c=>c.saldo>0).length!==1?"s":""),c:"#1A5276",i:"👥",sub:"Con deuda pendiente"},
           {l:"Proveed. con saldo",v:balancesProveedores.filter(p=>p.saldo>0).length+" proveed.",c:"#7C3AED",i:"🏭",sub:"Con deuda pendiente"},
         ].map(c=>(
@@ -2779,7 +2778,7 @@ function CuentaCorriente({clientes,proveedores,ventas,compras,pagosClientes,setP
       </div>
       <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
         <button onClick={()=>{setTab("clientes");setSelEntidad(null);setBuscar("");}} className="btn" style={{fontSize:13,padding:"9px 22px",background:tab==="clientes"?"#16A34A":"#fff",color:tab==="clientes"?"#fff":"#16A34A",border:"2px solid #16A34A"}}>👥 CLIENTES</button>
-        <button onClick={()=>{setTab("proveedores");setSelEntidad(null);setBuscar("");}} className="btn" style={{fontSize:13,padding:"9px 22px",background:tab==="proveedores"?"#E8620A":"#fff",color:tab==="proveedores"?"#fff":"#E8620A",border:"2px solid #E8620A"}}>🏭 PROVEEDORES</button>
+        <button onClick={()=>{setTab("proveedores");setSelEntidad(null);setBuscar("");}} className="btn" style={{fontSize:13,padding:"9px 22px",background:tab==="proveedores"?"#0EA5E9":"#fff",color:tab==="proveedores"?"#fff":"#0EA5E9",border:"2px solid #0EA5E9"}}>🏭 PROVEEDORES</button>
         <button onClick={()=>{setTab("informes");setSelEntidad(null);setBuscar("");}} className="btn" style={{fontSize:13,padding:"9px 22px",background:tab==="informes"?"#1A5276":"#fff",color:tab==="informes"?"#fff":"#1A5276",border:"2px solid #1A5276"}}>📊 INFORMES</button>
       </div>
       {tab==="informes"&&(()=>{
@@ -2819,12 +2818,12 @@ function CuentaCorriente({clientes,proveedores,ventas,compras,pagosClientes,setP
                 ))}
                 {!balancesClientes.filter(c=>c.saldo>0).length&&<div style={{color:"#94A3B8",fontSize:12}}>Sin deudores</div>}
               </div>
-              <div className="sec" style={{borderTop:"3px solid #E8620A"}}>
+              <div className="sec" style={{borderTop:"3px solid #0EA5E9"}}>
                 <div className="sec-title">🏭 TOP ACREEDORES — PROVEEDORES</div>
                 {balancesProveedores.filter(p=>p.saldo>0).sort((a,b)=>b.saldo-a.saldo).slice(0,5).map(p=>(
                   <div key={p.id} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid #EBF5FB"}}>
                     <span style={{fontSize:12,fontWeight:600,maxWidth:130,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.razonSocial}</span>
-                    <span style={{fontWeight:700,color:"#E8620A",fontSize:13}}>$ {fmtP(p.saldo)}</span>
+                    <span style={{fontWeight:700,color:"#0EA5E9",fontSize:13}}>$ {fmtP(p.saldo)}</span>
                   </div>
                 ))}
                 {!balancesProveedores.filter(p=>p.saldo>0).length&&<div style={{color:"#94A3B8",fontSize:12}}>Sin acreedores</div>}
