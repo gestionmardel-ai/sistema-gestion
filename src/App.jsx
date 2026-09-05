@@ -180,37 +180,7 @@ const MENU = [
   {id:"usr",icon:"🔐",label:"USUARIOS",roles:["admin"]},
 ];
 
-function LogoFaro({size=72,showText=true,dark=false}){
-  return(
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
-      <svg width={size} height={size*1.25} viewBox="0 0 160 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M 50 45 L 45 25 L 55 35" fill="none" stroke="#0EA5E9" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M 110 45 L 115 25 L 105 35" fill="none" stroke="#0EA5E9" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-        <circle cx="80" cy="75" r="45" fill="none" stroke="#0EA5E9" strokeWidth="3.5"/>
-        <circle cx="60" cy="65" r="15" fill="none" stroke="#0EA5E9" strokeWidth="3"/>
-        <circle cx="100" cy="65" r="15" fill="none" stroke="#0EA5E9" strokeWidth="3"/>
-        <circle cx="60" cy="68" r="7" fill="#0EA5E9"/>
-        <circle cx="100" cy="68" r="7" fill="#0EA5E9"/>
-        <path d="M 80 90 L 75 100 L 85 100 Z" fill="#0EA5E9"/>
-        <ellipse cx="80" cy="135" rx="32" ry="42" fill="none" stroke="#0EA5E9" strokeWidth="3.5"/>
-        <path d="M 55 125 Q 35 140 40 165" fill="none" stroke="#0EA5E9" strokeWidth="3.5" strokeLinecap="round"/>
-        <path d="M 105 125 Q 125 140 120 165" fill="none" stroke="#0EA5E9" strokeWidth="3.5" strokeLinecap="round"/>
-        <line x1="70" y1="175" x2="70" y2="192" stroke="#0EA5E9" strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="90" y1="175" x2="90" y2="192" stroke="#0EA5E9" strokeWidth="2.5" strokeLinecap="round"/>
-        <path d="M 50 55 Q 60 50 70 55" fill="none" stroke="#0EA5E9" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-        <path d="M 90 55 Q 100 50 110 55" fill="none" stroke="#0EA5E9" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-      </svg>
-      {showText&&(
-        <div style={{textAlign:"center",lineHeight:1.1}}>
-          <div style={{fontWeight:900,fontSize:16,letterSpacing:3,color:dark?"#fff":"#FFFFFF",textTransform:"uppercase"}}>
-            ATENAI
-          </div>
-          <div style={{fontSize:10,color:dark?"rgba(15,165,233,0.8)":"#0EA5E9",letterSpacing:1.5,textTransform:"uppercase",fontWeight:600,marginTop:2}}>Sabiduría en Gestión</div>
-        </div>
-      )}
-    </div>
-  );
-}
+
 
 function Loading({msg="Cargando..."}){  return <div className="loading"><div className="spinner"/><span>{msg}</span></div>; }
 
@@ -247,7 +217,7 @@ function Login({onLogin}){
   return(
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,#1A5276 0%,#1A6FA8 50%,#2E86C1 100%)"}}>
       <div style={{background:"#fff",borderRadius:12,padding:36,width:"100%",maxWidth:360,margin:16,boxShadow:"0 20px 60px rgba(0,0,0,0.4)"}}>
-        <div style={{textAlign:"center",marginBottom:24}}><LogoFaro size={80} showText={true} dark={false}/></div>
+        <div style={{textAlign:"center",marginBottom:24}}><div style={{fontSize:32,fontWeight:900,letterSpacing:3,color:"#1A5276",textTransform:"uppercase"}}>ATENAI</div><div style={{fontSize:11,color:"#0EA5E9",letterSpacing:1.5,textTransform:"uppercase",fontWeight:600,marginTop:4}}>Sistema de Gestión</div></div>
         {err&&<div className="err">{err}</div>}
         <div className="fg"><label>USUARIO</label>
           <input value={u} onChange={e=>setU(e.target.value)} onKeyDown={e=>e.key==="Enter"&&ingresar()} placeholder="usuario" disabled={cargando}/>
@@ -271,7 +241,7 @@ function Login({onLogin}){
 function Sidebar({usuario,page,setPage,onLogout,onRefresh}){
   return(
     <div style={{width:210,background:"#0F0F0F",height:"100vh",display:"flex",flexDirection:"column",flexShrink:0,position:"fixed",top:0,left:0,zIndex:200,overflowY:"auto"}}>
-      <div style={{padding:"14px 12px",borderBottom:"1px solid rgba(255,255,255,0.1)",textAlign:"center"}}><LogoFaro size={56} showText={true} dark={true}/></div>
+      <div style={{padding:"14px 12px",borderBottom:"1px solid rgba(255,255,255,0.1)",textAlign:"center"}}><div style={{fontSize:16,fontWeight:900,letterSpacing:2,color:"#0EA5E9",textTransform:"uppercase"}}>ATENAI</div><div style={{fontSize:9,color:"rgba(15,165,233,0.6)",letterSpacing:1}}>Gestión</div></div>
       <nav style={{flex:1,paddingTop:8,overflowY:"auto"}}>
         {MENU.filter(m=>m.roles.includes(usuario.rol)).map(m=>(
           <button key={m.id} onClick={()=>setPage(m.id)} style={{
@@ -507,24 +477,20 @@ function Articulos({articulos,setArticulos,usuario}){
       </div>
       <div style={{background:"#fff",borderRadius:8,overflowX:"auto",overflowY:"visible",boxShadow:"0 2px 8px rgba(0,0,0,0.08)",WebkitOverflowScrolling:"touch"}}>
         <table style={{minWidth:900}}>
-          <thead><tr><th style={{whiteSpace:"nowrap"}}>#ID</th><th style={{whiteSpace:"nowrap"}}>COD. PROPIO</th><th style={{whiteSpace:"nowrap"}}>CÓDIGO</th><th style={{minWidth:200}}>NOMBRE</th><th style={{whiteSpace:"nowrap"}}>UNIDAD</th><th style={{whiteSpace:"nowrap"}}>STOCK</th><th style={{whiteSpace:"nowrap"}}>ÚLT. COSTO $</th><th style={{whiteSpace:"nowrap"}}>RENT.%</th><th style={{whiteSpace:"nowrap"}}>P.SUGERIDO $</th><th style={{whiteSpace:"nowrap"}}>ESTADO</th><th></th></tr></thead>
+          <thead><tr><th style={{whiteSpace:"nowrap"}}>CÓDIGO</th><th style={{minWidth:200}}>NOMBRE</th><th style={{whiteSpace:"nowrap"}}>UNIDAD</th><th style={{whiteSpace:"nowrap"}}>STOCK</th><th style={{whiteSpace:"nowrap"}}>ÚLT. COSTO $</th><th style={{whiteSpace:"nowrap"}}>ESTADO</th><th></th></tr></thead>
           <tbody>
             {filtrados.map(a=>(
               <tr key={a.id}>
-                <td style={{fontWeight:700,color:"#1A6FA8",whiteSpace:"nowrap"}}>#{a.id}</td>
-                <td style={{fontSize:12,color:"#5D6D7E",whiteSpace:"nowrap"}}>{a.codigoPropio||<span style={{color:"#BDC3C7"}}>—</span>}</td>
                 <td style={{whiteSpace:"nowrap"}}><b>{a.codigo}</b></td>
                 <td style={{minWidth:200}}><div style={{fontWeight:600}}>{a.nombre}</div>{a.descripcion&&<div style={{fontSize:12,color:"#7F8C8D"}}>{a.descripcion}</div>}</td>
                 <td style={{whiteSpace:"nowrap"}}>{a.unidad}</td>
                 <td style={{fontWeight:700,color:a.stock<=5?"#DC2626":"#16A34A",whiteSpace:"nowrap"}}>{a.stock}</td>
                 <td style={{whiteSpace:"nowrap"}}><div>$ {fmtP(a.precio)}</div>{a.ultimaFechaCompra&&<div style={{fontSize:10,color:"#94A3B8"}}>{a.ultimaFechaCompra}</div>}</td>
-                <td style={{fontWeight:700,color:"#7C3AED",whiteSpace:"nowrap"}}>{a.rentabilidad||0}%</td>
-                <td style={{fontWeight:700,color:"#0891B2",whiteSpace:"nowrap"}}>$ {fmtP(pSug(a))}</td>
                 <td><span className="badge" style={{background:a.activo?"#1A8F4A":"#C0392B",color:"#fff"}}>{a.activo?"ACTIVO":"INACT."}</span></td>
                 <td><button className="btn btn-outline" onClick={()=>editar(a)} style={{fontSize:11,padding:"4px 10px"}}>✏️</button></td>
               </tr>
             ))}
-            {!filtrados.length&&<tr><td colSpan={11} style={{textAlign:"center",color:"#7F8C8D",padding:24}}>Sin resultados</td></tr>}
+            {!filtrados.length&&<tr><td colSpan={7} style={{textAlign:"center",color:"#7F8C8D",padding:24}}>Sin resultados</td></tr>}
           </tbody>
         </table>
       </div>
@@ -588,7 +554,7 @@ function Clientes({clientes,setClientes,usuario}){
     for(const f of filas){
       const cuit=(f.cuit||"").trim(); const rs=(f.razonSocial||"").trim();
       if(!cuit||!rs){errores++;continue;}
-      const reg={razon_social:rs,cuit:direccion:(f.direccion||"").trim(),telefono:(f.telefono||"").trim(),email:(f.email||"").trim(),activo:true};
+      const reg={razon_social:rs,cuit,direccion:(f.direccion||"").trim(),telefono:(f.telefono||"").trim(),email:(f.email||"").trim(),activo:true};
       try{
         const existe=clientes.find(c=>c.cuit===cuit);
         if(existe){await sb.from("clientes").eq("id",existe.id).update(reg);actualizados++;}
@@ -862,7 +828,8 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
           <div className="fg"><label>FECHA *</label><input type="date" value={enc.fecha} onChange={e=>setEnc(p=>({...p,fecha:e.target.value}))}/></div>
           <div className="fg"><label>NRO. COMPROBANTE</label><input value={enc.nroComprobante||""} onChange={e=>setEnc(p=>({...p,nroComprobante:e.target.value}))} placeholder="Ej: 0001-00012345"/></div>
           <div className="fg"><label>PROVEEDOR *</label><select value={enc.proveedorId} onChange={e=>setEnc(p=>({...p,proveedorId:e.target.value}))}><option value="">-- Seleccionar --</option>{proveedores.filter(p=>p.activo).map(p=><option key={p.id} value={p.id}>{p.razonSocial}</option>)}</select></div>
-          <div className="fg"><label>TIPO BOLETA *</label><select value={enc.tipoBoleta} onChange={e=>setEnc(p=>({...p,tipoBoleta:e.target.value}))}>{TIPOS.map(t=><option key={t}>{t}</option>)}</select></div>
+          <div className="fg"><label>TIPO BOLETA *</label><select value={enc.tipoBoleta} onChange={e=>setEnc(p=>({...p,tipoBoleta:e.target.value}))}>{TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
+          {(enc.tipoBoleta==="Factura B"||enc.tipoBoleta==="Factura C")&&<div className="fg"><label>% IVA INCLUIDO EN PRECIOS</label><input type="number" min="0" max="100" step="0.01" value={enc.pctIvaIncluido||21} onChange={e=>setEnc(p=>({...p,pctIvaIncluido:parseFloat(e.target.value)||0}))} placeholder="21"/></div>}
           <div className="fg"><label>USUARIO</label><input value={enc.usuario||""} disabled/></div>
         </div>
         <div className="fg full"><label>OBSERVACIONES</label><textarea rows={2} value={enc.observaciones||""} onChange={e=>setEnc(p=>({...p,observaciones:e.target.value}))} placeholder="Notas adicionales sobre la compra (opcional)"/></div>
@@ -905,6 +872,7 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
 }
 function LineaCompraRow({linea,articulos,onChange,onDelete,onAddAfter}){
   const [modalAbierto,setModalAbierto]=useState(false);
+  const inputBusquedaRef=useRef(null);
   const cantidad=parseFloat(linea.cantidad)||0;
   const montoTotal=parseFloat(linea.montoTotal)||0;
   const descuento=parseFloat(linea.descuento)||0;
@@ -1014,6 +982,7 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,
   if(vista==="det"&&sel){const c=sel; return(<div><div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}><button className="btn btn-outline" onClick={()=>{setVista("lista");setSel(null);}} style={{fontSize:12}}>← VOLVER</button><h2 style={{color:"#1A3A5C",fontSize:17}}>🛒 COMPRA #{c.id}</h2></div>
     <div className="sec"><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:10}}>{[["N° INTERNO",`#${c.id}`],["NRO. COMPROBANTE",c.nroComprobante||"—"],["FECHA",fmtFechaCorta(c.fecha)],["PROVEEDOR",c.proveedorNombre],["TIPO",c.tipoBoleta],["USUARIO",c.usuario]].map(([k,v])=>(<div key={k}><div style={{fontSize:10,color:"#94A3B8",fontWeight:700}}>{k}</div><div style={{fontWeight:700}}>{v}</div></div>))}</div></div>
     {c.observaciones&&<div className="sec" style={{borderLeft:"3px solid #0EA5E9"}}><div className="sec-title">📝 OBSERVACIONES</div><div style={{color:"#1A5276",fontSize:14,lineHeight:1.6}}>{c.observaciones}</div></div>}
+    {c.totalImpuestos>0&&<div className="sec" style={{borderLeft:"3px solid #7C3AED"}}><div className="sec-title">🧾 IMPUESTOS / AJUSTES CARGADOS</div><div style={{fontSize:12,color:"#1A3A5C"}}>Total impuestos: <strong style={{color:"#7C3AED",fontSize:14}}>$ {fmtP(c.totalImpuestos)}</strong></div></div>}
     <div style={{background:"#fff",borderRadius:8,overflow:"auto",marginBottom:12,boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}><table><thead><tr><th>ARTÍCULO</th><th>DETALLE/MARCA</th><th>CANT.</th><th>UNIDAD</th><th style={{textAlign:"right"}}>MONTO TOTAL $</th><th style={{textAlign:"right",color:"#FCA5A5"}}>DESC. $</th><th style={{textAlign:"right"}}>PRECIO FRACC. $</th></tr></thead><tbody>{c.lineas.map((l,i)=><tr key={i}><td><b>{l.articuloCodigo}</b> {l.articuloNombre}</td><td style={{fontSize:12,color:"#5D6D7E"}}>{l.detalle||<span style={{color:"#BDC3C7"}}>—</span>}</td><td>{l.cantidad}</td><td style={{fontSize:12,color:"#7F8C8D"}}>{l.unidadMedida||"—"}</td><td style={{textAlign:"right",fontWeight:700}}>$ {fmtP(l.total)}</td><td style={{textAlign:"right",color:"#C0392B"}}>{l.descuento>0?"$ "+fmtP(l.descuento):<span style={{color:"#BDC3C7"}}>—</span>}</td><td style={{textAlign:"right",fontWeight:700,color:"#0891B2"}}>$ {fmtP(l.precioFraccion||l.precioUnitario)}</td></tr>)}</tbody></table></div>
     <div className="sec"><div style={{display:"flex",flexDirection:"column",gap:8,maxWidth:280,marginLeft:"auto"}}><div style={{display:"flex",justifyContent:"space-between"}}><span>SUBTOTAL:</span><b>$ {fmtP(c.totalDetalle)}</b></div><div style={{display:"flex",justifyContent:"space-between"}}><span>IMPUESTOS:</span><b>$ {fmtP(c.totalImpuestos)}</b></div><div style={{display:"flex",justifyContent:"space-between",borderTop:"2px solid #0EA5E9",paddingTop:8}}><span style={{fontWeight:700,fontSize:14}}>TOTAL:</span><b style={{fontSize:18,color:"#0EA5E9"}}>$ {fmtP(c.totalCompra)}</b></div></div></div></div>);}
   const eliminarCompra=async(c)=>{ if(!window.confirm(`¿Eliminar compra #${c.id}?\nProveedor: ${c.proveedorNombre}\nTotal: $${fmtP(c.totalCompra)}\n\nEsto revertirá el stock de todos los artículos.`)) return; try{ const stockLocal={}; for(const l of c.lineas){ if(!l.articuloId) continue; const art=articulos.find(a=>a.id===l.articuloId); if(!art) continue; const base=stockLocal[l.articuloId]!==undefined?stockLocal[l.articuloId]:(art.stock||0); stockLocal[l.articuloId]=base-(parseFloat(l.cantidad)||0); } for(const [artIdStr,nuevoStock] of Object.entries(stockLocal)){ const artId=+artIdStr; await sb.from("articulos").eq("id",artId).update({stock:nuevoStock}); setArticulos(p=>p.map(a=>a.id===artId?{...a,stock:nuevoStock}:a)); } await sb.from("compras_detalle").eq("compra_id",c.id).delete(); await sb.from("compras").eq("id",c.id).delete(); setCompras(p=>p.filter(x=>x.id!==c.id)); }catch(e){alert("Error al eliminar: "+e.message);} };
@@ -1330,7 +1299,7 @@ function Dashboard({usuario}){
   const fmtFecha=d=>{const dias=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]; const meses=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]; return `${dias[d.getDay()]}, ${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;};
   const fmtHora=d=>`${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
   const h=hora.getHours(); const saludoFinal=(h<12?"¡Buenos días":h<18?"¡Buenas tardes":"¡Buenas noches")+", "+usuario.nombre+"!";
-  return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"20px 32px",gap:0,minHeight:"100%"}}><div style={{marginBottom:20}}><LogoFaro size={100} showText={true} dark={false}/></div>
+  return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"20px 32px",gap:0,minHeight:"100%"}}><div style={{marginBottom:20}}><div style={{fontSize:36,fontWeight:900,letterSpacing:3,color:"#1A5276",textTransform:"uppercase"}}>ATENAI</div></div>
     <div style={{background:"#fff",borderRadius:16,padding:"20px 48px",boxShadow:"0 4px 20px rgba(0,0,0,0.08)",marginBottom:20,minWidth:300}}><div style={{fontSize:44,fontWeight:800,color:"#1A5276",fontVariantNumeric:"tabular-nums",letterSpacing:2,marginBottom:6,textAlign:"center"}}>{fmtHora(hora)}</div><div style={{fontSize:15,color:"#5D6D7E",fontWeight:500,textAlign:"center"}}>{fmtFecha(hora)}</div></div>
     <div style={{background:"linear-gradient(135deg,#1A5276,#1A6FA8)",borderRadius:12,padding:"16px 36px",color:"#fff",textAlign:"center"}}><p style={{fontSize:19,fontWeight:700,marginBottom:4}}>{saludoFinal}</p><p style={{fontSize:13,opacity:0.85,fontWeight:400}}>Sesión iniciada como <strong>{usuario.rol.toUpperCase()}</strong></p></div>
   </div>);
