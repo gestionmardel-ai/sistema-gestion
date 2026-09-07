@@ -99,7 +99,7 @@ const mapComp = r => ({
   id:r.id,fecha:r.fecha,proveedorId:r.proveedor_id,proveedorNombre:r.proveedor_nombre,
   tipoBoleta:r.tipo_boleta,nroComprobante:r.nro_comprobante||"",
   totalDetalle:+r.total_detalle,totalImpuestos:+r.total_impuestos,
-  totalCompra:+r.total_compra,usuario:r.usuario_nombre,lineas:[]
+  totalCompra:+r.total_compra,usuario:r.usuario_nombre,lineas:[],impuestos:[]
 });
 const mapVta  = r => ({
   id:r.id,fecha:r.fecha,clienteId:r.cliente_id,clienteNombre:r.cliente_nombre,
@@ -766,6 +766,12 @@ function BuscadorArticulo({linea,articulos,setArticulos,onChange,onDelete,mostra
     }catch(e){alert("Error al guardar: "+e.message);}
     finally{setGuardandoNuevo(false);}
   };
+  useEffect(()=>{
+    if(modalAbierto){
+      setTimeout(()=>inputBusquedaRef?.current?.focus(),100);
+    }
+  },[modalAbierto]);
+  
   return(
     <>
       {modalAbierto&&<ModalBuscarArticulo articulos={articulos} onSelect={selArticulo} onNuevo={abrirNuevo} onClose={()=>setModalAbierto(false)} mostrarSugerido={mostrarSugerido}/>}
@@ -828,7 +834,7 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
           <div className="fg"><label>FECHA *</label><input type="date" value={enc.fecha} onChange={e=>setEnc(p=>({...p,fecha:e.target.value}))}/></div>
           <div className="fg"><label>NRO. COMPROBANTE</label><input value={enc.nroComprobante||""} onChange={e=>setEnc(p=>({...p,nroComprobante:e.target.value}))} placeholder="Ej: 0001-00012345"/></div>
           <div className="fg"><label>PROVEEDOR *</label><select value={enc.proveedorId} onChange={e=>setEnc(p=>({...p,proveedorId:e.target.value}))}><option value="">-- Seleccionar --</option>{proveedores.filter(p=>p.activo).map(p=><option key={p.id} value={p.id}>{p.razonSocial}</option>)}</select></div>
-          <div className="fg"><label>TIPO BOLETA *</label><select value={enc.tipoBoleta} onChange={e=>setEnc(p=>({...p,tipoBoleta:e.target.value}))}>{TIPOS.map(t=><option key={t}>{t}</option>)}</select></div>
+          <div className="fg"><label>TIPO BOLETA *</label><select value={enc.tipoBoleta} onChange={e=>setEnc(p=>({...p,tipoBoleta:e.target.value}))}>{TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
           {(enc.tipoBoleta==="Factura B"||enc.tipoBoleta==="Factura C")&&<div className="fg"><label>% IVA INCLUIDO EN PRECIOS</label><input type="number" min="0" max="100" step="0.01" value={enc.pctIvaIncluido||21} onChange={e=>setEnc(p=>({...p,pctIvaIncluido:parseFloat(e.target.value)||0}))} placeholder="21"/></div>}
           <div className="fg"><label>USUARIO</label><input value={enc.usuario||""} disabled/></div>
         </div>
@@ -870,8 +876,11 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
     </div>
   );
 }
-function LineaCompraRow({linea,articulos,onChange,onDelete,onAddAfter}){
+function LineaCompraRow({linea,articulos,setArticulos,onChange,onDelete,onAddAfter}){
   const [modalAbierto,setModalAbierto]=useState(false);
+  const [modalNuevo,setModalNuevo]=useState(false);
+  const [formNuevo,setFormNuevo]=useState({});
+  const [guardandoNuevo,setGuardandoNuevo]=useState(false);
   const inputBusquedaRef=useRef(null);
   const cantidad=parseFloat(linea.cantidad)||0;
   const montoTotal=parseFloat(linea.montoTotal)||0;
@@ -879,9 +888,42 @@ function LineaCompraRow({linea,articulos,onChange,onDelete,onAddAfter}){
   const montoNeto=montoTotal-descuento;
   const precioFraccion=cantidad!==0?montoNeto/cantidad:0;
   const selArticulo=(a)=>{onChange({...linea,articuloId:a.id,articuloNombre:a.nombre,articuloCodigo:a.codigo,unidadMedida:linea.unidadMedida||a.unidad||"Unidad",cantidad:linea.cantidad||1});};
+  const abrirNuevo=()=>{setFormNuevo({codigo:"",nombre:"",unidad:"Unidad",stock:0,precio:0,rentabilidad:0,activo:true});setModalNuevo(true);};
+  const guardarNuevo=async()=>{
+    if(!formNuevo.nombre){return;}
+    if(!formNuevo.codigo){formNuevo.codigo="ART"+Date.now().toString().slice(-5);}
+    setGuardandoNuevo(true);
+    try{
+      const reg={codigo:formNuevo.codigo,codigo_propio:"",nombre:formNuevo.nombre,descripcion:"",unidad:formNuevo.unidad||"Unidad",stock:+formNuevo.stock||0,precio:+formNuevo.precio||0,rentabilidad:+formNuevo.rentabilidad||0,activo:true};
+      const {data}=await sb.from("articulos").insert(reg);
+      if(data&&data[0]){
+        const nuevo={id:data[0].id,codigo:data[0].codigo,codigoPropio:"",nombre:data[0].nombre,descripcion:"",unidad:data[0].unidad||"Unidad",stock:+data[0].stock||0,precio:+data[0].precio||0,rentabilidad:+data[0].rentabilidad||0,activo:true};
+        if(setArticulos) setArticulos(p=>[...p,nuevo]);
+        selArticulo(nuevo);
+      }
+      setModalNuevo(false);
+    }catch(e){alert("Error: "+e.message);}
+    finally{setGuardandoNuevo(false);}
+  };
+  useEffect(()=>{
+    if(modalAbierto){
+      setTimeout(()=>inputBusquedaRef?.current?.focus(),100);
+    }
+  },[modalAbierto]);
+  
   return(
     <>
       {modalAbierto&&<ModalBuscarArticulo articulos={articulos} onSelect={(a)=>{selArticulo(a);setModalAbierto(false);}} onClose={()=>setModalAbierto(false)} mostrarSugerido={false}/>}
+      {modalNuevo&&(
+        <Modal title="➕ AGREGAR ARTÍCULO RÁPIDO" onClose={()=>setModalNuevo(false)} w={420}>
+          <div style={{marginBottom:12,padding:10,background:"#EBF5FB",borderRadius:6,fontSize:12,color:"#1A5276"}}>ℹ️ Se agregará a la base de datos y quedará disponible para futuras compras.</div>
+          <div className="fg"><label>NOMBRE *</label><input value={formNuevo.nombre||""} onChange={e=>setFormNuevo(p=>({...p,nombre:e.target.value}))}/></div>
+          <div className="fg"><label>CÓDIGO</label><input value={formNuevo.codigo||""} onChange={e=>setFormNuevo(p=>({...p,codigo:e.target.value}))} placeholder="Se genera automático"/></div>
+          <div className="fg"><label>UNIDAD</label><select value={formNuevo.unidad||"Unidad"} onChange={e=>setFormNuevo(p=>({...p,unidad:e.target.value}))}>{["Unidad","Kg","Litro","Metro","Caja"].map(u=><option key={u}>{u}</option>)}</select></div>
+          <div className="fg"><label>PRECIO COSTO $</label><input type="number" step="0.01" min="0" value={formNuevo.precio||0} onChange={e=>setFormNuevo(p=>({...p,precio:e.target.value}))}/></div>
+          <div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:14}}><button className="btn btn-outline" onClick={()=>setModalNuevo(false)}>CANCELAR</button><button className="btn btn-verde" onClick={guardarNuevo} disabled={guardandoNuevo}>{guardandoNuevo?"GUARDANDO...":"💾 GUARDAR Y USAR"}</button></div>
+        </Modal>
+      )}
       <tr>
         <td style={{minWidth:220}}><div onClick={()=>setModalAbierto(true)} style={{padding:"8px 10px",border:"1.5px solid",borderColor:linea.articuloId?"#1A8F4A":"#AED6F1",borderRadius:6,cursor:"pointer",background:linea.articuloId?"#EAFAF1":"#fff",display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:13}}><span style={{fontWeight:linea.articuloId?600:400,color:linea.articuloId?"#1A5276":"#7F8C8D"}}>{linea.articuloNombre||"Buscar artículo..."}</span><span style={{fontSize:15,opacity:0.6}}>🔍</span></div></td>
         <td><input value={linea.detalle||""} onChange={e=>onChange({...linea,detalle:e.target.value})} placeholder="Marca/detalle" style={{width:120,fontSize:13}}/></td>
@@ -904,7 +946,7 @@ function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usua
     setGuardando(true); setErr("");
     try{
       const prov=proveedores.find(p=>p.id===+enc.proveedorId);
-      const {data:compData}=await sb.from("compras").insert({fecha:enc.fecha,proveedor_id:+enc.proveedorId,proveedor_nombre:prov?.razonSocial||"",tipo_boleta:enc.tipoBoleta,nro_comprobante:enc.nroComprobante||"",total_detalle:sub,total_impuestos:totalImp,total_compra:total,usuario_nombre:usuario.nombre,OBSERVACIONES:enc.observaciones||""});
+      const {data:compData}=await sb.from("compras").insert({fecha:enc.fecha,proveedor_id:+enc.proveedorId,proveedor_nombre:prov?.razonSocial||"",tipo_boleta:enc.tipoBoleta,nro_comprobante:enc.nroComprobante||"",total_detalle:sub,total_impuestos:totalImp,total_compra:total,usuario_nombre:usuario.nombre,OBSERVACIONES:enc.observaciones||"",impuestos:JSON.stringify(impuestos)});
       const compId=compData[0].id;
       await sb.from("compras_detalle").insert(lineas.map(l=>{
         const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0; const desc=parseFloat(l.descuento)||0; const montoNeto=montoTot-desc; const precFrac=cant!==0?montoNeto/cant:0;
@@ -933,7 +975,7 @@ function NuevaCompra({proveedores,articulos,setArticulos,compras,setCompras,usua
         const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0; const desc=parseFloat(l.descuento)||0; const montoNeto=montoTot-desc; const precFrac=cant!==0?montoNeto/cant:0;
         return {articuloId:l.articuloId,articuloNombre:l.articuloNombre,articuloCodigo:l.articuloCodigo,detalle:l.detalle||"",unidadMedida:l.unidadMedida||"Unidad",cantidad:cant,precioUnitario:precFrac,precioFraccion:precFrac,total:montoTot,descuento:desc};
       });
-      setCompras(p=>[...p,{id:compId,fecha:enc.fecha,proveedorId:+enc.proveedorId,proveedorNombre:prov?.razonSocial||"",tipoBoleta:enc.tipoBoleta,nroComprobante:enc.nroComprobante||"",totalDetalle:sub,totalImpuestos:totalImp,totalCompra:total,usuario:usuario.nombre,observaciones:enc.observaciones||"",lineas:lineasGuardadas}]);
+      setCompras(p=>[...p,{id:compId,fecha:enc.fecha,proveedorId:+enc.proveedorId,proveedorNombre:prov?.razonSocial||"",tipoBoleta:enc.tipoBoleta,nroComprobante:enc.nroComprobante||"",totalDetalle:sub,totalImpuestos:totalImp,totalCompra:total,usuario:usuario.nombre,observaciones:enc.observaciones||"",lineas:lineasGuardadas,impuestos:impuestos}]);
       setOk(true); setTimeout(onVolver,1500);
     }catch(e){setErr("Error al guardar: "+e.message);}
     finally{setGuardando(false);}
@@ -958,7 +1000,7 @@ function EditarCompra({compraOriginal,proveedores,articulos,setArticulos,setComp
         if(info){ await sb.from("articulos").eq("id",artId).update({stock:nuevoStock,precio:info.precio,ultima_fecha_compra:info.fecha,ultimo_proveedor_compra:info.proveedor}); setArticulos(p=>p.map(a=>a.id===artId?{...a,stock:nuevoStock,precio:info.precio,ultimaFechaCompra:info.fecha,ultimoProveedorCompra:info.proveedor}:a)); }
         else{ await sb.from("articulos").eq("id",artId).update({stock:nuevoStock}); setArticulos(p=>p.map(a=>a.id===artId?{...a,stock:nuevoStock}:a)); }
       }
-      await sb.from("compras").eq("id",compraOriginal.id).update({fecha:enc.fecha,proveedor_id:+enc.proveedorId,proveedor_nombre:prov?.razonSocial||"",tipo_boleta:enc.tipoBoleta,nro_comprobante:enc.nroComprobante||"",total_detalle:sub,total_impuestos:totalImp,total_compra:total,usuario_nombre:usuario.nombre,OBSERVACIONES:enc.observaciones||""});
+      await sb.from("compras").eq("id",compraOriginal.id).update({fecha:enc.fecha,proveedor_id:+enc.proveedorId,proveedor_nombre:prov?.razonSocial||"",tipo_boleta:enc.tipoBoleta,nro_comprobante:enc.nroComprobante||"",total_detalle:sub,total_impuestos:totalImp,total_compra:total,usuario_nombre:usuario.nombre,OBSERVACIONES:enc.observaciones||"",impuestos:JSON.stringify(impuestos)});
       await sb.from("compras_detalle").eq("compra_id",compraOriginal.id).delete();
       await sb.from("compras_detalle").insert(lineas.map(l=>{
         const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0; const desc=parseFloat(l.descuento)||0; const montoNeto=montoTot-desc; const precFrac=cant!==0?montoNeto/cant:0;
@@ -968,7 +1010,7 @@ function EditarCompra({compraOriginal,proveedores,articulos,setArticulos,setComp
         const cant=parseFloat(l.cantidad)||0; const montoTot=parseFloat(l.montoTotal)||0; const desc=parseFloat(l.descuento)||0; const montoNeto=montoTot-desc; const precFrac=cant!==0?montoNeto/cant:0;
         return {articuloId:l.articuloId,articuloNombre:l.articuloNombre,articuloCodigo:l.articuloCodigo,detalle:l.detalle||"",unidadMedida:l.unidadMedida||"Unidad",cantidad:cant,precioUnitario:precFrac,precioFraccion:precFrac,total:montoTot,descuento:desc};
       });
-      setCompras(p=>p.map(c=>c.id===compraOriginal.id?{...c,fecha:enc.fecha,proveedorId:+enc.proveedorId,proveedorNombre:prov?.razonSocial||"",tipoBoleta:enc.tipoBoleta,nroComprobante:enc.nroComprobante||"",totalDetalle:sub,totalImpuestos:totalImp,totalCompra:total,observaciones:enc.observaciones||"",lineas:lineasGuardadas}:c));
+      setCompras(p=>p.map(c=>c.id===compraOriginal.id?{...c,fecha:enc.fecha,proveedorId:+enc.proveedorId,proveedorNombre:prov?.razonSocial||"",tipoBoleta:enc.tipoBoleta,nroComprobante:enc.nroComprobante||"",totalDetalle:sub,totalImpuestos:totalImp,totalCompra:total,observaciones:enc.observaciones||"",lineas:lineasGuardadas,impuestos:impuestos}:c));
       setOk(true); setTimeout(onVolver,1500);
     }catch(e){setErr("Error al guardar: "+e.message);}
     finally{setGuardando(false);}
@@ -982,7 +1024,7 @@ function Compras({proveedores,articulos,setArticulos,compras,setCompras,usuario,
   if(vista==="det"&&sel){const c=sel; return(<div><div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}><button className="btn btn-outline" onClick={()=>{setVista("lista");setSel(null);}} style={{fontSize:12}}>← VOLVER</button><h2 style={{color:"#1A3A5C",fontSize:17}}>🛒 COMPRA #{c.id}</h2></div>
     <div className="sec"><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:10}}>{[["N° INTERNO",`#${c.id}`],["NRO. COMPROBANTE",c.nroComprobante||"—"],["FECHA",fmtFechaCorta(c.fecha)],["PROVEEDOR",c.proveedorNombre],["TIPO",c.tipoBoleta],["USUARIO",c.usuario]].map(([k,v])=>(<div key={k}><div style={{fontSize:10,color:"#94A3B8",fontWeight:700}}>{k}</div><div style={{fontWeight:700}}>{v}</div></div>))}</div></div>
     {c.observaciones&&<div className="sec" style={{borderLeft:"3px solid #0EA5E9"}}><div className="sec-title">📝 OBSERVACIONES</div><div style={{color:"#1A5276",fontSize:14,lineHeight:1.6}}>{c.observaciones}</div></div>}
-    {c.totalImpuestos>0&&<div className="sec" style={{borderLeft:"3px solid #7C3AED"}}><div className="sec-title">🧾 IMPUESTOS / AJUSTES CARGADOS</div><div style={{fontSize:12,color:"#1A3A5C"}}>Total impuestos: <strong style={{color:"#7C3AED",fontSize:14}}>$ {fmtP(c.totalImpuestos)}</strong></div></div>}
+    {c.totalImpuestos>0&&<div className="sec" style={{borderLeft:"3px solid #7C3AED"}}><div className="sec-title">🧾 IMPUESTOS / AJUSTES CARGADOS</div><div style={{display:"flex",flexDirection:"column",gap:8}}>{c.impuestos&&c.impuestos.map((imp,i)=><div key={i} style={{padding:10,background:"#F8F9FA",borderRadius:6,borderLeft:"3px solid #7C3AED",display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontWeight:600,color:"#1A5276",fontSize:12}}>{imp.concepto||"Impuesto"}</span><span style={{fontWeight:700,color:"#7C3AED",fontSize:13}}>$ {fmtP(imp.monto)}</span></div>)}<div style={{paddingTop:8,borderTop:"2px solid #E2E8F0",marginTop:8}}><strong style={{color:"#7C3AED"}}>Total: $ {fmtP(c.totalImpuestos)}</strong></div></div></div>}
     <div style={{background:"#fff",borderRadius:8,overflow:"auto",marginBottom:12,boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}><table><thead><tr><th>ARTÍCULO</th><th>DETALLE/MARCA</th><th>CANT.</th><th>UNIDAD</th><th style={{textAlign:"right"}}>MONTO TOTAL $</th><th style={{textAlign:"right",color:"#FCA5A5"}}>DESC. $</th><th style={{textAlign:"right"}}>PRECIO FRACC. $</th></tr></thead><tbody>{c.lineas.map((l,i)=><tr key={i}><td><b>{l.articuloCodigo}</b> {l.articuloNombre}</td><td style={{fontSize:12,color:"#5D6D7E"}}>{l.detalle||<span style={{color:"#BDC3C7"}}>—</span>}</td><td>{l.cantidad}</td><td style={{fontSize:12,color:"#7F8C8D"}}>{l.unidadMedida||"—"}</td><td style={{textAlign:"right",fontWeight:700}}>$ {fmtP(l.total)}</td><td style={{textAlign:"right",color:"#C0392B"}}>{l.descuento>0?"$ "+fmtP(l.descuento):<span style={{color:"#BDC3C7"}}>—</span>}</td><td style={{textAlign:"right",fontWeight:700,color:"#0891B2"}}>$ {fmtP(l.precioFraccion||l.precioUnitario)}</td></tr>)}</tbody></table></div>
     <div className="sec"><div style={{display:"flex",flexDirection:"column",gap:8,maxWidth:280,marginLeft:"auto"}}><div style={{display:"flex",justifyContent:"space-between"}}><span>SUBTOTAL:</span><b>$ {fmtP(c.totalDetalle)}</b></div><div style={{display:"flex",justifyContent:"space-between"}}><span>IMPUESTOS:</span><b>$ {fmtP(c.totalImpuestos)}</b></div><div style={{display:"flex",justifyContent:"space-between",borderTop:"2px solid #0EA5E9",paddingTop:8}}><span style={{fontWeight:700,fontSize:14}}>TOTAL:</span><b style={{fontSize:18,color:"#0EA5E9"}}>$ {fmtP(c.totalCompra)}</b></div></div></div></div>);}
   const eliminarCompra=async(c)=>{ if(!window.confirm(`¿Eliminar compra #${c.id}?\nProveedor: ${c.proveedorNombre}\nTotal: $${fmtP(c.totalCompra)}\n\nEsto revertirá el stock de todos los artículos.`)) return; try{ const stockLocal={}; for(const l of c.lineas){ if(!l.articuloId) continue; const art=articulos.find(a=>a.id===l.articuloId); if(!art) continue; const base=stockLocal[l.articuloId]!==undefined?stockLocal[l.articuloId]:(art.stock||0); stockLocal[l.articuloId]=base-(parseFloat(l.cantidad)||0); } for(const [artIdStr,nuevoStock] of Object.entries(stockLocal)){ const artId=+artIdStr; await sb.from("articulos").eq("id",artId).update({stock:nuevoStock}); setArticulos(p=>p.map(a=>a.id===artId?{...a,stock:nuevoStock}:a)); } await sb.from("compras_detalle").eq("compra_id",c.id).delete(); await sb.from("compras").eq("id",c.id).delete(); setCompras(p=>p.filter(x=>x.id!==c.id)); }catch(e){alert("Error al eliminar: "+e.message);} };
@@ -1340,7 +1382,7 @@ export default function App(){
       setProveedores((rProv.data||[]).map(mapProv));
       setUsuarios((rUsr.data||[]).map(mapUsr));
       const detComp=rDetComp.data||[];
-      setCompras((rComp.data||[]).map(c=>({...mapComp(c),lineas:detComp.filter(d=>d.compra_id===c.id).map(mapLinComp)})));
+      setCompras((rComp.data||[]).map(c=>({...mapComp(c),lineas:detComp.filter(d=>d.compra_id===c.id).map(mapLinComp),impuestos:c.impuestos?JSON.parse(c.impuestos):[]})));
       const detVta=rDetVta.data||[];
       setVentas((rVta.data||[]).map(v=>({...mapVta(v),lineas:detVta.filter(d=>d.venta_id===v.id).map(mapLinVta)})));
       setPagosClientes((rPagCli.data||[]).map(mapPagoCli));
