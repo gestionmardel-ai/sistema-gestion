@@ -834,7 +834,7 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
           <div className="fg"><label>FECHA *</label><input type="date" value={enc.fecha} onChange={e=>setEnc(p=>({...p,fecha:e.target.value}))}/></div>
           <div className="fg"><label>NRO. COMPROBANTE</label><input value={enc.nroComprobante||""} onChange={e=>setEnc(p=>({...p,nroComprobante:e.target.value}))} placeholder="Ej: 0001-00012345"/></div>
           <div className="fg"><label>PROVEEDOR *</label><select value={enc.proveedorId} onChange={e=>setEnc(p=>({...p,proveedorId:e.target.value}))}><option value="">-- Seleccionar --</option>{proveedores.filter(p=>p.activo).map(p=><option key={p.id} value={p.id}>{p.razonSocial}</option>)}</select></div>
-          <div className="fg"><label>TIPO BOLETA *</label><select value={enc.tipoBoleta} onChange={e=>setEnc(p=>({...p,tipoBoleta:e.target.value}))}>{TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
+          <div className="fg"><label>TIPO BOLETA *</label><select value={enc.tipoBoleta} onChange={e=>setEnc(p=>({...p,tipoBoleta:e.target.value}))}>{TIPOS.map(t=><option key={t}>{t}</option>)}</select></div>
           {(enc.tipoBoleta==="Factura B"||enc.tipoBoleta==="Factura C")&&<div className="fg"><label>% IVA INCLUIDO EN PRECIOS</label><input type="number" min="0" max="100" step="0.01" value={enc.pctIvaIncluido||21} onChange={e=>setEnc(p=>({...p,pctIvaIncluido:parseFloat(e.target.value)||0}))} placeholder="21"/></div>}
           <div className="fg"><label>USUARIO</label><input value={enc.usuario||""} disabled/></div>
         </div>
