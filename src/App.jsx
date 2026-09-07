@@ -843,7 +843,7 @@ function CompraForm({titulo,encInit,lineasInit,impuestosInit,proveedores,articul
       <div className="sec" style={{borderTop:"3px solid #0EA5E9"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><div className="sec-title" style={{margin:0}}>━━ DETALLE ━━</div><button className="btn btn-primary" onClick={agregar} style={{fontSize:12}}>+ LÍNEA</button></div>
         <div style={{overflowX:"auto"}}>
-          <table style={{minWidth:"1200px"}}><thead><tr><th>ARTÍCULO</th><th>DETALLE / MARCA</th><th>CANT.</th><th>UNIDAD</th><th>MONTO TOTAL $</th><th style={{color:"#FCA5A5"}}>DESCUENTO $</th><th style={{textAlign:"right",color:"#85C1E9"}}>PRECIO FRACCIÓN $</th><th></th></tr></thead>
+          <table style={{minWidth:"900px"}}><thead><tr><th>ARTÍCULO</th><th>DETALLE / MARCA</th><th>CANT.</th><th>UNIDAD</th><th>MONTO TOTAL $</th><th style={{color:"#FCA5A5"}}>DESCUENTO $</th><th style={{textAlign:"right",color:"#85C1E9"}}>PRECIO FRACCIÓN $</th><th></th></tr></thead>
             <tbody>
               {lineas.map((l,i)=>(
                 <LineaCompraRow key={l._k} linea={l} articulos={articulos} onChange={d=>mod(i,d)} onDelete={()=>del(i)} onAddAfter={()=>agregarDespues(i)}/>
